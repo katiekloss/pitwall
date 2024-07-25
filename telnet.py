@@ -1,25 +1,30 @@
 #!env/bin/python
 import sys
 import asyncio
+import orjson
+import time
 
 from pysignalr.client import SignalRClient
 
 async def on_open():
-    print("connected")
+    ...
 
 async def on_close():
-    print("disconnected")
+    ...
 
 async def on_error(x):
     print(f"error: {x}")
 
 async def on_feed(update):
+    now = time.time_ns()
     source = update[0]
-    data = update[1]
-    print(f'{source}: {data}')
+    data = orjson.dumps(update[1]).decode('utf-8')
+    print(f'{now}:{source}:{data}')
 
 async def on_subscribe(snapshot):
-    print(f'subscribed: {snapshot}')
+    now = time.time_ns()
+    snapshot = orjson.dumps(snapshot.result).decode('utf-8')
+    print(f"{now}:init:{snapshot}")
 
 async def main():
     timing_client = SignalRClient("wss://livetiming.formula1.com/signalrcore")

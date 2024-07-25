@@ -1,2 +1,2 @@
-protobuf==5.27.2
 pysignalr==1.0.0
+orjson==3.10.6
