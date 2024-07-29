@@ -1,0 +1,6 @@
+[Main]
+max-line-length = 160
+extension-pkg-allow-list = orjson
+
+[Basic]
+no-docstring-rgx = .*

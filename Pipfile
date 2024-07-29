@@ -8,6 +8,7 @@ pysignalr = "==1.0.0"
 orjson = "==3.10.6"
 
 [dev-packages]
+pylint = "*"
 
 [requires]
 python_version = "3.12"
