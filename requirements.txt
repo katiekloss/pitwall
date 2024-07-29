@@ -1,2 +1,0 @@
-pysignalr==1.0.0
-orjson==3.10.6
