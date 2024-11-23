@@ -6,9 +6,10 @@ name = "pypi"
 [packages]
 pysignalr = "==1.0.0"
 orjson = "==3.10.12"
+anyio = "*"
 
 [dev-packages]
 pylint = "*"
 
 [requires]
-python_version = "3.12"
+python_version = "3"
