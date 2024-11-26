@@ -72,7 +72,7 @@ if __name__ == "__main__":
     parser.add_argument("-o", "--output", required=True)
     args = parser.parse_args()
 
-    out_file = open(args.output, "w")
+    out_file = open(args.output, "a")
 
     try:
         asyncio.run(main())

@@ -8,6 +8,10 @@ import argparse
 
 async def main():
     if args.output != None:
+        if os.path.exists(args.output):
+            os.remove(args.output)
+
+        os.mkfifo(args.output)
         output = open(args.output, "a")
     else:
         output = None
@@ -25,7 +29,7 @@ async def main():
                 # helps get through waiting forever
                 if wait_s > 5:
                     wait_s = 5
-
+                wait_s = wait_s / args.multiplier
                 await asyncio.sleep(wait_s)
 
             offset_time = time.time_ns()
@@ -47,8 +51,18 @@ try:
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--input", required=True)
     parser.add_argument("-o", "--output")
+    parser.add_argument("-x", "--multiplier")
     args = parser.parse_args()
+    if args.multiplier != None:
+        args.multiplier = int(args.multiplier)
+    else:
+        args.multiplier = 1
 
     run(main)
-except KeyboardInterrupt:
+except (KeyboardInterrupt,BrokenPipeError):
     ...
+finally:
+    try:
+        os.remove(args.output)
+    except FileNotFoundError:
+        ...
