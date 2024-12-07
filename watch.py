@@ -65,13 +65,22 @@ def on_line(line):
         print(f"Race control: {messages}")
         if messages == "CHEQUERED FLAG":
             raise Cancel()
-
+    elif src == "SessionStatus":
+        status = data["Status"]
+        print(f"Session is {status}")
     elif src == "SessionData":
         if "Series" not in data or isinstance(data["Series"], list):
             return
 
-        lap = int(data["Series"][list(data["Series"].keys())[0]]["Lap"])
-        print(f"Lap {lap}")
+        session = data["Series"][list(data["Series"].keys())[0]]
+        if "Lap" in session:
+            lap = int(data["Series"][list(data["Series"].keys())[0]]["Lap"])
+            print(f"Lap {lap}")
+        elif "QualifyingPart" in session:
+            print(f"Qualifying session, no lap count")
+        else:
+            raise KeyError("Unknown SessionData format")
+
     elif src == "TimingData":
         for driver_id in data["Lines"].keys():
             driver = data["Lines"][driver_id]
