@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 pysignalr = "==1.1.0"
-orjson = "==3.10.12"
+orjson = "==3.10.15"
 anyio = "*"
 
 [dev-packages]
