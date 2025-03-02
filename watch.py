@@ -7,6 +7,7 @@ import os
 
 drivers = dict()
 statuses = dict()
+locations = dict()
 lap = 1
 
 class Cancel(Exception):
@@ -40,9 +41,9 @@ def on_line(line):
     global lap
 
     line = line.rstrip()
-    if len(line) == 0:
+    if len(line) == 0 or lap > 2:
         print(f"EOF")
-        return
+        raise Cancel()
 
     (ts, src, data) = line.split(":", 2)
     ts = int(ts)
@@ -83,7 +84,10 @@ def on_line(line):
 
     elif src == "TimingData":
         for driver_id in data["Lines"].keys():
+            if driver_id != "81":
+                continue
             driver = data["Lines"][driver_id]
+            print(f"{ts}: {driver}")
             if driver_id not in drivers:
                 print(f"\t{driver_id}: Unknown")
                 continue
@@ -97,6 +101,7 @@ def on_line(line):
 
             for sector_id in driver["Sectors"].keys():
                 sector = driver["Sectors"][sector_id]
+                sector_id = int(sector_id)
                 if "Stopped" in sector:
                     print(f"\t\t{drivers[driver_id]} stopped in sector {sector_id}")
                     continue
@@ -122,11 +127,30 @@ def on_line(line):
                 elif isinstance(sector["Segments"], list): # same as the above one for driver[Sectors]
                     sector["Segments"] = dict([(i, x) for i, x in enumerate(sector["Segments"])])
 
-                for segment_id in sector["Segments"].keys():
+                for segment_id in sector["Segments"].keys(): # order these?
                     segment = sector["Segments"][segment_id]
+                    segment_id = int(segment_id)
                     status = segment["Status"]
+
+                    if status > 0 and status != 2052:
+                        if driver_id in locations:
+                            last_location = locations[driver_id]
+                            if sector_id == 0 and segment_id <= 1:
+                                print("Lap!") # should actually happen at the end of the max segment, but we don't know what that is yet
+                                locations[driver_id] = (0, 0)
+                            elif last_location[0] < sector_id or last_location[1] < segment_id:
+                                print(f"Finished segment {sector_id}:{segment_id}")
+                                locations[driver_id] = (sector_id, segment_id)
+                        else:
+                            locations[driver_id] = (sector_id, segment_id)
+
                     if status not in statuses:
                         statuses[status] = f"{drivers[driver_id]} at {lap}:{sector_id}:{segment_id}"
+    elif src == "TimingAppData" or src == "TimingStats":
+        for driver_id in data["Lines"].keys():
+            if driver_id != "81" or driver_id not in drivers:
+                continue
+            print(data["Lines"][driver_id])
     elif src == "TrackStatus":
         message = data["Message"]
         status = data["Status"]
@@ -134,7 +158,7 @@ def on_line(line):
     elif src == "ExtrapolatedClock":
         t = data["Remaining"]
         print(f"Race time is {t}")
-    elif src in ["Heartbeat", "TimingStats", "TimingAppData", "WeatherData", "TeamRadio"]:
+    elif src in ["Heartbeat", "WeatherData", "TeamRadio"]:
         ...
     else:
         print(line)
