@@ -9,6 +9,7 @@ drivers = dict()
 statuses = dict()
 locations = dict()
 lap = 1
+max_stint = dict()
 
 class Cancel(Exception):
     ...
@@ -26,6 +27,10 @@ def main():
 
     in_file = open(args.input, "r")
     for line in in_file:
+        if args.to > 0 and lap >= args.to:
+            print(f"Reached lap {lap}")
+            return
+
         try:
             on_line(line)
         except Cancel:
@@ -36,12 +41,11 @@ def main():
 
     print(f"Segment statuses: {statuses}")
 
-
 def on_line(line):
     global lap
 
     line = line.rstrip()
-    if len(line) == 0 or lap > 2:
+    if len(line) == 0:
         print(f"EOF")
         raise Cancel()
 
@@ -64,6 +68,7 @@ def on_line(line):
 
         messages = ", ".join([x["Message"] for x in messages])
         print(f"Race control: {messages}")
+
         if messages == "CHEQUERED FLAG":
             raise Cancel()
     elif src == "SessionStatus":
@@ -84,13 +89,11 @@ def on_line(line):
 
     elif src == "TimingData":
         for driver_id in data["Lines"].keys():
-            if driver_id != "81":
-                continue
             driver = data["Lines"][driver_id]
-            print(f"{ts}: {driver}")
             if driver_id not in drivers:
                 print(f"\t{driver_id}: Unknown")
                 continue
+
             if "Sectors" not in driver:
                 # probably "GapToLeader" and/or "IntervalToPositionAhead" instead
                 continue
@@ -102,6 +105,7 @@ def on_line(line):
             for sector_id in driver["Sectors"].keys():
                 sector = driver["Sectors"][sector_id]
                 sector_id = int(sector_id)
+
                 if "Stopped" in sector:
                     print(f"\t\t{drivers[driver_id]} stopped in sector {sector_id}")
                     continue
@@ -136,10 +140,8 @@ def on_line(line):
                         if driver_id in locations:
                             last_location = locations[driver_id]
                             if sector_id == 0 and segment_id <= 1:
-                                print("Lap!") # should actually happen at the end of the max segment, but we don't know what that is yet
                                 locations[driver_id] = (0, 0)
                             elif last_location[0] < sector_id or last_location[1] < segment_id:
-                                print(f"Finished segment {sector_id}:{segment_id}")
                                 locations[driver_id] = (sector_id, segment_id)
                         else:
                             locations[driver_id] = (sector_id, segment_id)
@@ -148,9 +150,19 @@ def on_line(line):
                         statuses[status] = f"{drivers[driver_id]} at {lap}:{sector_id}:{segment_id}"
     elif src == "TimingAppData" or src == "TimingStats":
         for driver_id in data["Lines"].keys():
-            if driver_id != "81" or driver_id not in drivers:
+            if driver_id not in drivers:
+                print(f"Timing data for unknown driver {driver_id}")
                 continue
-            print(data["Lines"][driver_id])
+            driver_line = data["Lines"][driver_id]
+            if "Stints" in driver_line:
+                for stint_number in driver_line["Stints"]:
+                    if isinstance(stint_number, dict): # stint 0
+                        max_stint[driver_id] = 0
+                        continue
+                    elif int(stint_number) > max_stint[driver_id]:
+                        max_stint[driver_id] = int(stint_number)
+                        print(f"{driver_id} started stint {stint_number}")
+                    stint = driver_line["Stints"][stint_number]
     elif src == "TrackStatus":
         message = data["Message"]
         status = data["Status"]
@@ -160,8 +172,6 @@ def on_line(line):
         print(f"Race time is {t}")
     elif src in ["Heartbeat", "WeatherData", "TeamRadio"]:
         ...
-    else:
-        print(line)
 
 def change_session(data):
     event = data["Meeting"]["Name"]
@@ -179,15 +189,19 @@ def init_drivers(data):
                 continue
 
             drivers[driver_id] = data[driver_id]["BroadcastName"]
+            max_stint[driver_id] = 0
     else:
         for driver in data:
             drivers[str(driver["RacingNumber"])] = driver["BroadcastName"]
+            max_stint[driver_id] = 0
 
 if __name__ == "__main__":
     global args
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--input", required=True)
+    parser.add_argument("-f", "--from", default=0)
+    parser.add_argument("-t", "--to", default=0, type=int)
     args = parser.parse_args()
 
     try:
