@@ -5,11 +5,21 @@ import orjson
 import time
 import os
 
+from dataclasses import dataclass
+
 drivers = dict()
 statuses = dict()
 locations = dict()
 lap = 1
-max_stint = dict()
+
+@dataclass
+class Driver:
+    number: int
+    broadcast_name: str
+    max_stint: int
+
+    def __repr__(self):
+        return f"{self.broadcast_name} ({self.number})"
 
 class Cancel(Exception):
     ...
@@ -159,9 +169,9 @@ def on_line(line):
                     if isinstance(stint_number, dict): # stint 0
                         max_stint[driver_id] = 0
                         continue
-                    elif int(stint_number) > max_stint[driver_id]:
-                        max_stint[driver_id] = int(stint_number)
-                        print(f"{driver_id} started stint {stint_number}")
+                    elif int(stint_number) > drivers[driver_id].max_stint:
+                        drivers[driver_id].max_stint = int(stint_number)
+                        print(f"{drivers[driver_id]} started stint {stint_number}")
                     stint = driver_line["Stints"][stint_number]
     elif src == "TrackStatus":
         message = data["Message"]
@@ -188,12 +198,10 @@ def init_drivers(data):
             if "BroadcastName" not in data[driver_id]:
                 continue
 
-            drivers[driver_id] = data[driver_id]["BroadcastName"]
-            max_stint[driver_id] = 0
+            drivers[driver_id] = Driver(int(driver_id), data[driver_id]["BroadcastName"], 1)
     else:
         for driver in data:
-            drivers[str(driver["RacingNumber"])] = driver["BroadcastName"]
-            max_stint[driver_id] = 0
+            drivers[str(driver["RacingNumber"])] = Driver(driver["RacingNumber"], driver["BroadcastName"], 1)
 
 if __name__ == "__main__":
     global args
