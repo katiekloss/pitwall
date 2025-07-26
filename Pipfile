@@ -4,9 +4,10 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-pysignalr = "==1.1.0"
 orjson = "==3.10.12"
 anyio = "*"
+requests = "*"
+pysignalr = "*"
 
 [dev-packages]
 pylint = "*"
