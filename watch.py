@@ -4,9 +4,10 @@ import sys
 import argparse
 import time
 import os
+from typing import List
 from pitwall import PitWallClient
 from pitwall.adapters import CaptureAdapter
-from pitwall.events import SessionChange
+from pitwall.events import SessionChange, Driver
 
 from dataclasses import dataclass
 
@@ -18,7 +19,7 @@ locations = dict()
 lap = 1
 
 @dataclass
-class Driver:
+class DriverSummary:
     number: int
     broadcast_name: str
     max_stint: int
@@ -43,7 +44,7 @@ def main():
     client = PitWallClient(CaptureAdapter(args.input))
     client.on_update(on_line)
     client.on_session_change(on_session_change)
-
+    client.on_driver_data(init_drivers)
     try:
         asyncio.run(client.go())
     except Cancel:
@@ -63,13 +64,7 @@ def on_line(update: Update):
         print(f"Reached lap {lap}")
         return
 
-    if src == "init":
-        # TODO: migrate to an event
-        change_session(SessionChange(data["SessionInfo"]["Meeting"]["Name"], data["SessionInfo"]["Name"], data["SessionInfo"]["ArchiveStatus"]["Status"]))
-        init_drivers(data["DriverList"])
-    elif src == "DriverList":
-        init_drivers(data)
-    elif src == "RaceControlMessages":
+    if src == "RaceControlMessages":
         if isinstance(data["Messages"], list):
             messages = data["Messages"]
         elif isinstance(data["Messages"], dict):
@@ -185,20 +180,10 @@ def on_line(update: Update):
 def change_session(session: SessionChange):
     print(f"Now watching {session.name}: {session.part} ({session.status})")
 
-def init_drivers(data):
-    if isinstance(data, dict):
-        for driver_id in data.keys():
-            if driver_id == "_kf":
-                break
-
-            if "BroadcastName" not in data[driver_id]:
-                continue
-
-            drivers[driver_id] = Driver(int(driver_id), data[driver_id]["BroadcastName"], 1)
-    else:
-        for driver in data:
-            drivers[str(driver["RacingNumber"])] = Driver(driver["RacingNumber"], driver["BroadcastName"], 1)
-
+def init_drivers(data: List[Driver]):
+    for driver in data:
+        drivers[str(driver.number)] = DriverSummary(driver.number, driver.broadcast_name, 1)
+    
 if __name__ == "__main__":
     global args
 
