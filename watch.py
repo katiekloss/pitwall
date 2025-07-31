@@ -5,13 +5,12 @@ import argparse
 import time
 import os
 from typing import List
-from pitwall import PitWallClient
-from pitwall.adapters import CaptureAdapter
-from pitwall.events import SessionChange, Driver, SessionProgress
-
 from dataclasses import dataclass
 
+from pitwall import PitWallClient
+from pitwall.adapters import CaptureAdapter
 from pitwall.adapters.abstract import Update
+from pitwall.events import SessionChange, Driver, SessionProgress, RaceControlUpdate
 
 drivers = dict()
 statuses = dict()
@@ -46,6 +45,8 @@ def main():
     client.on_session_change(on_session_change)
     client.on_session_progress(on_session_progress)
     client.on_driver_data(init_drivers)
+    client.on_race_control_update(on_race_control_update)
+
     try:
         asyncio.run(client.go())
     except Cancel:
@@ -61,6 +62,13 @@ def on_session_progress(progress: SessionProgress) -> None:
     lap = progress.lap
     print(f"Lap {lap}")
 
+def on_race_control_update(update: RaceControlUpdate) -> None:
+    messages = ", ".join([x["Message"] for x in update.messages])
+    print(f"Race control: {messages}")
+
+    if messages == "CHEQUERED FLAG": # usually fired by itself
+        raise Cancel()
+
 def on_line(update: Update):
     src = update.src
     data = update.data
@@ -69,18 +77,7 @@ def on_line(update: Update):
         print(f"Reached lap {lap}")
         return
 
-    if src == "RaceControlMessages":
-        if isinstance(data["Messages"], list):
-            messages = data["Messages"]
-        elif isinstance(data["Messages"], dict):
-            messages = list(data["Messages"].values())
-
-        messages = ", ".join([x["Message"] for x in messages])
-        print(f"Race control: {messages}")
-
-        if messages == "CHEQUERED FLAG":
-            raise Cancel()
-    elif src == "SessionStatus":
+    if src == "SessionStatus":
         status = data["Status"]
         print(f"Session is {status}")
     elif src == "TimingData":

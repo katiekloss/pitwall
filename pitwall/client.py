@@ -3,14 +3,14 @@ import warnings
 from pitwall.adapters.abstract import PitWallAdapter, Update
 from collections.abc import Callable
 
-from pitwall.events import Driver, SessionChange, SessionProgress
+from pitwall.events import Driver, SessionChange, SessionProgress, RaceControlUpdate
 
 class PitWallClient:
     update_callbacks: List[Callable[[Update], None]]
     session_change_callbacks: List[Callable[[SessionChange], None]]
     driver_data_callbacks: List[Callable[[List[Driver]], None]]
     session_progress_callbacks: List[Callable[[SessionProgress], None]]
-    racecontrol_update_callbacks: List[Callable[[RaceControlUpdate], None]]
+    race_control_update_callbacks: List[Callable[[RaceControlUpdate], None]]
 
     def __init__(self, adapter : PitWallAdapter):
         self.adapter = adapter
@@ -18,6 +18,7 @@ class PitWallClient:
         self.session_change_callbacks = list()
         self.driver_data_callbacks = list()
         self.session_progress_callbacks = list()
+        self.race_control_update_callbacks = list()
 
     async def go(self) -> None:
         async for update in self.adapter.run():
@@ -35,6 +36,9 @@ class PitWallClient:
 
     def on_session_progress(self, callback: Callable[[SessionProgress], None]) -> None:
         self.session_progress_callbacks.append(callback)
+
+    def on_race_control_update(self, callback: Callable[[RaceControlUpdate], None]) -> None:
+        self.race_control_update_callbacks.append(callback)
 
     def update(self, update: Update):
         for callback in self.update_callbacks:
@@ -66,8 +70,7 @@ class PitWallClient:
             elif isinstance(update.data["Messages"], dict):
                 messages = list(update.data["Messages"].values())
 
-            messages = ", ".join([x["Message"] for x in messages])
-            print(f"Race control: {messages}")
+            self.fire_callbacks(self.race_control_update_callbacks, RaceControlUpdate(messages))
             
     def fire_callbacks(self, callbacks: List[Callable[[Any], None]], payload: Any) -> None:
         for callback in callbacks:

@@ -14,7 +14,7 @@ class CaptureAdapter(PitWallAdapter):
             except EOS:
                 break
             except:
-                print(line)
+                print(line) # TODO: remove this
                 raise
 
     def on_line(self, line: str) -> Update:
