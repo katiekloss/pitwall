@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import sys
 import asyncio
 import orjson
 import time
@@ -40,7 +39,7 @@ async def on_feed(update):
             current_session_key = update[1]["Key"]
             print("Switching to " + update[1]["Meeting"]["Name"] + " " + update[1]["Name"])
 
-            if out_file != None:
+            if out_file is not None:
                 out_file.close()
             out_file = open(os.path.join(args.output, update[1]["Meeting"]["Name"] + " - " + update[1]["Name"] + ".txt"), "a")
 
@@ -48,7 +47,7 @@ async def on_feed(update):
 
     if source == "SessionStatus" and update[1]["Status"] == "Finalised":
         if args.continuous:
-            print(f"Session complete")
+            print("Session complete")
             out_file.close()
             out_file = None
         else:
@@ -68,7 +67,7 @@ async def on_subscribe(snapshot):
         else:
             return
 
-    if args.continuous and out_file == None:
+    if args.continuous and out_file is None:
         current_session_key = snapshot.result["SessionInfo"]["Key"]
         out_file = open(os.path.join(args.output, snapshot.result["SessionInfo"]["Meeting"]["Name"] + " - " + snapshot.result["SessionInfo"]["Name"] + ".txt"), "a")
 
@@ -85,7 +84,7 @@ async def timeout():
             raise Cancel()
 
 def write(line):
-    if out_file == None:
+    if out_file is None:
         return
 
     out_file.write(line + '\n')
@@ -125,5 +124,5 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         ...
     finally:
-        if out_file != None:
+        if out_file is not None:
             out_file.close()

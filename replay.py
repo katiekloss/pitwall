@@ -7,7 +7,7 @@ import time
 import argparse
 
 async def main():
-    if args.output != None:
+    if args.output is not None:
         if os.path.exists(args.output):
             os.remove(args.output)
 
@@ -22,7 +22,7 @@ async def main():
             (ts, type, data) = next_line.split(":", 2)
             ts = int(ts)
             data = data.rstrip()
-            if last_ts == None:
+            if last_ts is None:
                 ...
             else:
                 wait_s = (ts - last_ts) / 1000000000
@@ -33,7 +33,7 @@ async def main():
                 await asyncio.sleep(wait_s)
 
             offset_time = time.time_ns()
-            if output != None:
+            if output is not None:
                 output.write(f"{ts}:{type}:{data}\n")
                 output.flush()
             else:
@@ -43,7 +43,7 @@ async def main():
                 offset_time = 0
             last_ts = ts + offset_time
 
-    if output != None:
+    if output is not None:
         output.close()
 
 try:
@@ -53,7 +53,7 @@ try:
     parser.add_argument("-o", "--output")
     parser.add_argument("-x", "--multiplier")
     args = parser.parse_args()
-    if args.multiplier != None:
+    if args.multiplier is not None:
         args.multiplier = int(args.multiplier)
     else:
         args.multiplier = 1

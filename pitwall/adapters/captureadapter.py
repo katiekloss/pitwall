@@ -20,7 +20,7 @@ class CaptureAdapter(PitWallAdapter):
     def on_line(self, line: str) -> Update:
         line = line.rstrip()
         if len(line) == 0:
-            print(f"EOF")
+            print("EOF")
             raise EOS()
 
         (ts, src, data) = line.split(":", 2)

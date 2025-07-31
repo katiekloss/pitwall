@@ -9,3 +9,8 @@ dependencies = [
     "pysignalr>=1.3.0",
     "requests>=2.32.4",
 ]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.12.7",
+]

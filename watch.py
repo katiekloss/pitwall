@@ -47,7 +47,6 @@ def on_line(update: Update):
     global lap
     src = update.src
     data = update.data
-    ts = update.ts
 
     if args.to > 0 and lap >= args.to:
         print(f"Reached lap {lap}")
@@ -83,7 +82,7 @@ def on_line(update: Update):
             lap = int(data["Series"][list(data["Series"].keys())[0]]["Lap"])
             print(f"Lap {lap}")
         elif "QualifyingPart" in session:
-            print(f"Qualifying session, no lap count")
+            print("Qualifying session, no lap count")
         else:
             raise KeyError("Unknown SessionData format")
 
@@ -110,10 +109,10 @@ def on_line(update: Update):
                     print(f"\t\t{drivers[driver_id]} stopped in sector {sector_id}")
                     continue
                 elif "Value" in sector:
-                    if sector["Value"] != "":
-                        sector_time = float(sector["Value"])
-                    else:
-                        ... # probably clearing the last n-1 sectors at the start of a new lap
+                    # if sector["Value"] != "":
+                    #     sector_time = float(sector["Value"])
+                    # else:
+                    #     ... # probably clearing the last n-1 sectors at the start of a new lap
                     continue
                 elif "PreviousValue" in sector:
                     continue
@@ -157,12 +156,12 @@ def on_line(update: Update):
             if "Stints" in driver_line:
                 for stint_number in driver_line["Stints"]:
                     if isinstance(stint_number, dict): # stint 0
-                        max_stint[driver_id] = 0
+                        drivers[driver_id].max_stint = 0
                         continue
                     elif int(stint_number) > drivers[driver_id].max_stint:
                         drivers[driver_id].max_stint = int(stint_number)
                         print(f"{drivers[driver_id]} started stint {stint_number}")
-                    stint = driver_line["Stints"][stint_number]
+                    # stint = driver_line["Stints"][stint_number]
     elif src == "TrackStatus":
         message = data["Message"]
         status = data["Status"]

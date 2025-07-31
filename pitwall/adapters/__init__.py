@@ -1,1 +1,1 @@
-from .captureadapter import *
+from .captureadapter import CaptureAdapter as CaptureAdapter # ruff said so
