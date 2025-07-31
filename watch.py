@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 import sys
 import argparse
-import orjson
 import time
 import os
+from pitwall import PitWallClient
+from pitwall.adapters import CaptureAdapter
 
 from dataclasses import dataclass
+
+from pitwall.adapters.abstract import Update
 
 drivers = dict()
 statuses = dict()
@@ -35,33 +38,20 @@ def main():
         print(f"{args.input} didn't exist within 20 seconds")
         sys.exit(255)
 
-    in_file = open(args.input, "r")
-    for line in in_file:
-        if args.to > 0 and lap >= args.to:
-            print(f"Reached lap {lap}")
-            return
-
-        try:
-            on_line(line)
-        except Cancel:
-            break
-        except:
-            print(line)
-            raise
+    client = PitWallClient(CaptureAdapter(args.input))
+    client.on_update(on_line)
 
     print(f"Segment statuses: {statuses}")
 
-def on_line(line):
+def on_line(update: Update):
     global lap
+    src = update.src
+    data = update.data
+    ts = update.ts
 
-    line = line.rstrip()
-    if len(line) == 0:
-        print(f"EOF")
-        raise Cancel()
-
-    (ts, src, data) = line.split(":", 2)
-    ts = int(ts)
-    data = orjson.loads(data)
+    if args.to > 0 and lap >= args.to:
+        print(f"Reached lap {lap}")
+        return
 
     if src == "init":
         change_session(data["SessionInfo"])
