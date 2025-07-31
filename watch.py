@@ -7,7 +7,7 @@ import os
 from typing import List
 from pitwall import PitWallClient
 from pitwall.adapters import CaptureAdapter
-from pitwall.events import SessionChange, Driver
+from pitwall.events import SessionChange, Driver, SessionProgress
 
 from dataclasses import dataclass
 
@@ -44,6 +44,7 @@ def main():
     client = PitWallClient(CaptureAdapter(args.input))
     client.on_update(on_line)
     client.on_session_change(on_session_change)
+    client.on_session_progress(on_session_progress)
     client.on_driver_data(init_drivers)
     try:
         asyncio.run(client.go())
@@ -55,8 +56,12 @@ def main():
 def on_session_change(session: SessionChange) -> None:
     change_session(session)
 
-def on_line(update: Update):
+def on_session_progress(progress: SessionProgress) -> None:
     global lap
+    lap = progress.lap
+    print(f"Lap {lap}")
+
+def on_line(update: Update):
     src = update.src
     data = update.data
 
@@ -78,19 +83,6 @@ def on_line(update: Update):
     elif src == "SessionStatus":
         status = data["Status"]
         print(f"Session is {status}")
-    elif src == "SessionData":
-        if "Series" not in data or isinstance(data["Series"], list):
-            return
-
-        session = data["Series"][list(data["Series"].keys())[0]]
-        if "Lap" in session:
-            lap = int(data["Series"][list(data["Series"].keys())[0]]["Lap"])
-            print(f"Lap {lap}")
-        elif "QualifyingPart" in session:
-            print("Qualifying session, no lap count")
-        else:
-            raise KeyError("Unknown SessionData format")
-
     elif src == "TimingData":
         for driver_id in data["Lines"].keys():
             driver = data["Lines"][driver_id]
