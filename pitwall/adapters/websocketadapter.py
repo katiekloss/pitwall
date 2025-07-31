@@ -1,8 +1,12 @@
-import asyncio
+from typing import AsyncIterator
 
-from pitwall.adapters.abstract import PitWallAdapter
+import pysignalr.client
+
+from pitwall.adapters.abstract import PitWallAdapter, Update
 
 class WebsocketAdapter(PitWallAdapter):
+    client: pysignalr.client.ClientStream
+
     def __init__(self, websocketclient):
         self.client = websocketclient
         self.client.on("feed", self.on_feed)
@@ -15,8 +19,6 @@ class WebsocketAdapter(PitWallAdapter):
     async def on_subscribe(self, message):
         print('subscribed')
 
-    async def start(self):
-        await asyncio.gather(
-            self.client.run(),
-            self.client.send("Subscribe", [["SessionInfo", "Heartbeat", "DriverList", "ExtrapolatedClock", "RaceControlMessages", "SessionStatus", "TeamRadio", "TimingAppData", "TimingStats", "TrackStatus", "WeatherData", "Position.z", "CarData.z", "SessionData", "TimingData"]], self.on_subscribe))
-
+    async def run(self) -> AsyncIterator[Update]:
+        await self.client.send("Subscribe", [["SessionInfo", "Heartbeat", "DriverList", "ExtrapolatedClock", "RaceControlMessages", "SessionStatus", "TeamRadio", "TimingAppData", "TimingStats", "TrackStatus", "WeatherData", "Position.z", "CarData.z", "SessionData", "TimingData"]], self.on_subscribe)
+        self.client.run()

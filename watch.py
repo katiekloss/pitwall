@@ -1,10 +1,12 @@
 #!/usr/bin/env python
+import asyncio
 import sys
 import argparse
 import time
 import os
 from pitwall import PitWallClient
 from pitwall.adapters import CaptureAdapter
+from pitwall.events import SessionChange
 
 from dataclasses import dataclass
 
@@ -40,8 +42,17 @@ def main():
 
     client = PitWallClient(CaptureAdapter(args.input))
     client.on_update(on_line)
+    client.on_session_change(on_session_change)
 
+    try:
+        asyncio.run(client.go())
+    except Cancel:
+        ...
+        
     print(f"Segment statuses: {statuses}")
+
+def on_session_change(session: SessionChange) -> None:
+    change_session(session)
 
 def on_line(update: Update):
     global lap
@@ -53,10 +64,9 @@ def on_line(update: Update):
         return
 
     if src == "init":
-        change_session(data["SessionInfo"])
+        # TODO: migrate to an event
+        change_session(SessionChange(data["SessionInfo"]["Meeting"]["Name"], data["SessionInfo"]["Name"], data["SessionInfo"]["ArchiveStatus"]["Status"]))
         init_drivers(data["DriverList"])
-    elif src == "SessionInfo":
-        change_session(data)
     elif src == "DriverList":
         init_drivers(data)
     elif src == "RaceControlMessages":
@@ -172,11 +182,8 @@ def on_line(update: Update):
     elif src in ["Heartbeat", "WeatherData", "TeamRadio"]:
         ...
 
-def change_session(data):
-    event = data["Meeting"]["Name"]
-    session = data["Name"]
-    status = data["ArchiveStatus"]["Status"]
-    print(f"Now watching {event}: {session} ({status})")
+def change_session(session: SessionChange):
+    print(f"Now watching {session.name}: {session.part} ({session.status})")
 
 def init_drivers(data):
     if isinstance(data, dict):

@@ -1,13 +1,8 @@
-from dataclasses import dataclass
 from typing import List
-from pitwall.adapters.abstract import PitWallAdapter
+import warnings
+from pitwall.adapters.abstract import PitWallAdapter, Update
+from pitwall.events import SessionChange
 from collections.abc import Callable
-
-@dataclass
-class SessionChange:
-    name: str
-    part: str
-    status: str
 
 class PitWallClient:
     update_callbacks: List[Callable[[Update], None]]
@@ -15,12 +10,16 @@ class PitWallClient:
 
     def __init__(self, adapter : PitWallAdapter):
         self.adapter = adapter
+        self.update_callbacks = list()
+        self.session_change_callbacks = list()
 
-    async def start(self) -> None:
-        await self.adapter.start()
+    async def go(self) -> None:
+        async for update in self.adapter.run():
+            self.update(update)
 
-    async def stop(self) -> None:
-        await self.adapter.stop()
+    def on_update(self, callback: Callable[[Update], None]):
+        warnings.warn("Subscribe to an actual event class or just use an adapter instead of the full client", stacklevel=2)
+        self.update_callbacks.append(callback)
 
     def on_session_change(self, session_change_callback: Callable[[SessionChange], None]):
         self.session_change_callbacks.append(session_change_callback)
@@ -28,4 +27,9 @@ class PitWallClient:
     def update(self, update: Update):
         for callback in self.update_callbacks:
             callback(update)
-        
+
+        if update.src == "SessionInfo":
+            payload = SessionChange(update.data["Meeting"]["Name"], update.data["Name"], update.data["ArchiveStatus"]["Status"])
+            for callback in self.session_change_callbacks:
+                callback(payload)
+            

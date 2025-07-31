@@ -1,4 +1,4 @@
-from typing import AsyncIterator, Awaitable
+from typing import AsyncIterator
 import orjson
 from pitwall.adapters.abstract import EOS, PitWallAdapter, Update
 
