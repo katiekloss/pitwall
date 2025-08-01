@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from pitwall import PitWallClient
 from pitwall.adapters import CaptureAdapter
 from pitwall.adapters.abstract import Update
-from pitwall.events import SessionChange, Driver, SessionProgress, RaceControlUpdate
+from pitwall.events import SessionChange, Driver, SessionProgress, RaceControlUpdate, TimingDatum
 
 drivers = dict()
 statuses = dict()
@@ -46,6 +46,7 @@ def main():
     client.on_session_progress(on_session_progress)
     client.on_driver_data(init_drivers)
     client.on_race_control_update(on_race_control_update)
+    client.on_timing_data(on_timing_data)
 
     try:
         asyncio.run(client.go())
@@ -80,67 +81,6 @@ def on_line(update: Update):
     if src == "SessionStatus":
         status = data["Status"]
         print(f"Session is {status}")
-    elif src == "TimingData":
-        for driver_id in data["Lines"].keys():
-            driver = data["Lines"][driver_id]
-            if driver_id not in drivers:
-                print(f"\t{driver_id}: Unknown")
-                continue
-
-            if "Sectors" not in driver:
-                # probably "GapToLeader" and/or "IntervalToPositionAhead" instead
-                continue
-
-            # happens at the start of the race to reset everyone, for some reason it's not a dict
-            if isinstance(driver["Sectors"], list):
-                driver["Sectors"] = dict([(i, x) for i, x in enumerate(driver["Sectors"])])
-
-            for sector_id in driver["Sectors"].keys():
-                sector = driver["Sectors"][sector_id]
-                sector_id = int(sector_id)
-
-                if "Stopped" in sector:
-                    print(f"\t\t{drivers[driver_id]} stopped in sector {sector_id}")
-                    continue
-                elif "Value" in sector:
-                    # if sector["Value"] != "":
-                    #     sector_time = float(sector["Value"])
-                    # else:
-                    #     ... # probably clearing the last n-1 sectors at the start of a new lap
-                    continue
-                elif "PreviousValue" in sector:
-                    continue
-
-                if "PersonalFastest" in sector:
-                    print(f"Personal fastest sector {sector_id}: {drivers[driver_id]}")
-                    continue
-                elif "OverallFastest" in sector:
-                    print(f"Overall fastest sector {sector_id}: {drivers[driver_id]}")
-                    continue
-                elif "Segments" not in sector:
-                    print(f"\t{sector}")
-                    # "Value" str int "OverallFastest" bool and "PersonalFastest" bool
-                    continue
-                elif isinstance(sector["Segments"], list): # same as the above one for driver[Sectors]
-                    sector["Segments"] = dict([(i, x) for i, x in enumerate(sector["Segments"])])
-
-                for segment_id in sector["Segments"].keys(): # order these?
-                    segment = sector["Segments"][segment_id]
-                    segment_id = int(segment_id)
-                    status = segment["Status"]
-
-                    if status > 0 and status != 2052:
-                        if driver_id in locations:
-                            last_location = locations[driver_id]
-                            if sector_id == 0 and segment_id <= 1:
-                                locations[driver_id] = (0, 0)
-                            elif last_location[0] < sector_id or last_location[1] < segment_id:
-                                locations[driver_id] = (sector_id, segment_id)
-                        else:
-                            locations[driver_id] = (sector_id, segment_id)
-
-                    if status not in statuses:
-                        statuses[status] = f"{drivers[driver_id]} at {lap}:{sector_id}:{segment_id}"
     elif src == "TimingAppData" or src == "TimingStats":
         for driver_id in data["Lines"].keys():
             if driver_id not in drivers:
@@ -172,6 +112,25 @@ def change_session(session: SessionChange):
 def init_drivers(data: List[Driver]):
     for driver in data:
         drivers[str(driver.number)] = DriverSummary(driver.number, driver.broadcast_name, 1)
+
+def on_timing_data(data: TimingDatum) -> None:
+    for segment_id in sector["Segments"].keys(): # order these?
+        segment = sector["Segments"][segment_id]
+        segment_id = int(segment_id)
+        status = segment["Status"]
+
+        if status > 0 and status != 2052:
+            if driver_id in locations:
+                last_location = locations[driver_id]
+                if sector_id == 0 and segment_id <= 1:
+                    locations[driver_id] = (0, 0)
+                elif last_location[0] < sector_id or last_location[1] < segment_id:
+                    locations[driver_id] = (sector_id, segment_id)
+            else:
+                locations[driver_id] = (sector_id, segment_id)
+
+        if status not in statuses:
+            statuses[status] = f"{drivers[driver_id]} at {lap}:{sector_id}:{segment_id}"
     
 if __name__ == "__main__":
     global args

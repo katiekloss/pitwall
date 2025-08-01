@@ -1,9 +1,9 @@
 from typing import Any, Dict, List
 import warnings
 from pitwall.adapters.abstract import PitWallAdapter, Update
-from collections.abc import Callable
+from collections.abc import Callable, Generator
 
-from pitwall.events import Driver, SessionChange, SessionProgress, RaceControlUpdate
+from pitwall.events import Driver, SessionChange, SessionProgress, RaceControlUpdate, TimingDatum, DriverStatusUpdate
 
 class PitWallClient:
     update_callbacks: List[Callable[[Update], None]]
@@ -11,6 +11,7 @@ class PitWallClient:
     driver_data_callbacks: List[Callable[[List[Driver]], None]]
     session_progress_callbacks: List[Callable[[SessionProgress], None]]
     race_control_update_callbacks: List[Callable[[RaceControlUpdate], None]]
+    timing_data_callbacks: List[Callable]
 
     def __init__(self, adapter : PitWallAdapter):
         self.adapter = adapter
@@ -19,6 +20,7 @@ class PitWallClient:
         self.driver_data_callbacks = list()
         self.session_progress_callbacks = list()
         self.race_control_update_callbacks = list()
+        self.timing_data_callbacks = list()
 
     async def go(self) -> None:
         async for update in self.adapter.run():
@@ -39,6 +41,9 @@ class PitWallClient:
 
     def on_race_control_update(self, callback: Callable[[RaceControlUpdate], None]) -> None:
         self.race_control_update_callbacks.append(callback)
+
+    def on_timing_datum(self, callback: Callable[[TimingDatum], None]) -> None:
+        self.timing_data_callbacks.append(callback)
 
     def update(self, update: Update):
         for callback in self.update_callbacks:
@@ -71,7 +76,10 @@ class PitWallClient:
                 messages = list(update.data["Messages"].values())
 
             self.fire_callbacks(self.race_control_update_callbacks, RaceControlUpdate(messages))
-            
+        elif update.src == "TimingData":
+            for datum in self.handle_timing_data(update.data):
+                self.fire_callbacks(self.timing_data_callbacks, datum)
+
     def fire_callbacks(self, callbacks: List[Callable[[Any], None]], payload: Any) -> None:
         for callback in callbacks:
             callback(payload)
@@ -95,3 +103,59 @@ class PitWallClient:
                 drivers.append(Driver(driver["RacingNumber"], driver["BroadcastName"]))
         
         return drivers
+
+    def handle_timing_data(self, data) -> Generator[TimingDatum]:
+        for driver_id in data["Lines"].keys():
+            driver = data["Lines"][driver_id]
+
+            if "Sectors" not in driver:
+                # probably "GapToLeader" and/or "IntervalToPositionAhead" instead
+                continue
+
+            # happens at the start of the race to reset everyone, for some reason it's not a dict
+            if isinstance(driver["Sectors"], list):
+                driver["Sectors"] = dict([(i, x) for i, x in enumerate(driver["Sectors"])])
+
+            for sector_id in driver["Sectors"].keys():
+                sector = driver["Sectors"][sector_id]
+                sector_id = int(sector_id)
+
+                if "Stopped" in sector:
+                    print(f"\t\t{driver_id} stopped in sector {sector_id}")
+                    continue
+                elif "Value" in sector:
+                    # if sector["Value"] != "":
+                    #     sector_time = float(sector["Value"])
+                    # else:
+                    #     ... # probably clearing the last n-1 sectors at the start of a new lap
+                    continue
+                elif "PreviousValue" in sector:
+                    continue
+
+                overall_fastest = "OverallFastest" in sector
+                personal_fastest = "PersonalFastest" in sector
+
+                if "Segments" not in sector:
+                    print(f"\t{sector}")
+                    # "Value" str int "OverallFastest" bool and "PersonalFastest" bool
+                    continue
+                elif isinstance(sector["Segments"], list): # same as the above one for driver[Sectors]
+                    sector["Segments"] = dict([(i, x) for i, x in enumerate(sector["Segments"])])
+
+                for segment_id in sector["Segments"].keys(): # order these?
+                    segment = sector["Segments"][segment_id]
+                    segment_id = int(segment_id)
+                    status = segment["Status"]
+
+                    if status > 0 and status != 2052:
+                        if driver_id in locations:
+                            last_location = locations[driver_id]
+                            if sector_id == 0 and segment_id <= 1:
+                                locations[driver_id] = (0, 0)
+                            elif last_location[0] < sector_id or last_location[1] < segment_id:
+                                locations[driver_id] = (sector_id, segment_id)
+                        else:
+                            locations[driver_id] = (sector_id, segment_id)
+
+                    if status not in statuses:
+                        statuses[status] = f"{drivers[driver_id]} at {lap}:{sector_id}:{segment_id}"
