@@ -15,7 +15,7 @@ job "pitwall-recorder" {
 
       config {
         command = "uv"
-        args = ["run", "python", "-u", "capture.py", "--continuous"]
+        args = ["run", "python", "-u", "capture.py", "--continuous", "--output", "/alloc/data"]
         work_dir = "/alloc/pitwall"
       }
 
