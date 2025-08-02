@@ -11,7 +11,7 @@ from pitwall import PitWallClient
 from pitwall.adapters import CaptureAdapter
 from pitwall.adapters.abstract import Update
 from pitwall.events import SessionChange, Driver, SessionProgress, RaceControlUpdate, TimingDatum
-from pitwall.events.timing import SectorTimingDatum, SegmentTimingDatum
+from pitwall.events.timing import DriverStatusUpdate, SectorTimingDatum, SegmentTimingDatum
 
 drivers = dict()
 statuses = dict()
@@ -49,7 +49,7 @@ def main():
     client.on_driver_data(init_drivers)
     client.on_race_control_update(on_race_control_update)
     client.on_timing_datum(on_timing_data)
-    client.on_driver_status_update(lambda u: print(f"\t{u.driver_id} stopped in sector {u.sector_id}"))
+    client.on_driver_status_update(on_driver_status_update)
 
     try:
         asyncio.run(client.go())
@@ -86,11 +86,15 @@ def on_line(update: Update):
         print(f"Session is {status}")
     elif src == "TimingAppData" or src == "TimingStats":
         for driver_id in data["Lines"].keys():
+            if args.driver is not None and args.driver != driver_id:
+                continue
+
             if driver_id not in drivers:
                 print(f"Timing data for unknown driver {driver_id}")
                 continue
             driver_line = data["Lines"][driver_id]
             if "Stints" in driver_line:
+                print(driver_line["Stints"])
                 for stint_number in driver_line["Stints"]:
                     if isinstance(stint_number, dict): # stint 0
                         drivers[driver_id].max_stint = 0
@@ -117,6 +121,9 @@ def init_drivers(data: List[Driver]):
         drivers[str(driver.number)] = DriverSummary(driver.number, driver.broadcast_name, 1)
 
 def on_timing_data(data: TimingDatum) -> None:
+    if args.driver is not None and args.driver != data.driver_id:
+        return
+    
     if isinstance(data, SegmentTimingDatum):
         segment: SegmentTimingDatum = data
         if segment.status > 0 and segment.status != 2052: # I don't remember what this means, but it's written on a post-it in my office somewhere
@@ -139,7 +146,12 @@ def on_timing_data(data: TimingDatum) -> None:
                 sector_leaders[sector.sector_id] = data.driver_id
         #elif sector.personal_fastest:
         #    print(f"\t{drivers[data.driver_id]} personal fastest sector {sector.sector_id} ({sector.time})")
-    
+
+def on_driver_status_update(update: DriverStatusUpdate):
+    if args.driver is not None and args.driver != update.driver_id:
+        return
+    print(f"\t{update.driver_id} stopped in sector {update.sector_id}")
+
 if __name__ == "__main__":
     global args
 
@@ -147,6 +159,7 @@ if __name__ == "__main__":
     parser.add_argument("-i", "--input", required=True)
     parser.add_argument("-f", "--from", default=0)
     parser.add_argument("-t", "--to", default=0, type=int)
+    parser.add_argument("-d", "--driver")
     args = parser.parse_args()
 
     try:
