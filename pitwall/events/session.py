@@ -13,6 +13,7 @@ class SessionProgress:
 
 @dataclass
 class RaceControlUpdate:
+    # bug: not actually a string
     messages: List[str]
 
 @dataclass

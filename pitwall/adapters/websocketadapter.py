@@ -19,6 +19,6 @@ class WebsocketAdapter(PitWallAdapter):
     async def on_subscribe(self, message):
         print('subscribed')
 
-    async def run(self) -> AsyncIterator[Update]:
+    async def run(self) -> None:
         await self.client.send("Subscribe", [["SessionInfo", "Heartbeat", "DriverList", "ExtrapolatedClock", "RaceControlMessages", "SessionStatus", "TeamRadio", "TimingAppData", "TimingStats", "TrackStatus", "WeatherData", "Position.z", "CarData.z", "SessionData", "TimingData"]], self.on_subscribe)
         self.client.run()

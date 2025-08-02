@@ -15,7 +15,7 @@ async def main():
         adapter = CaptureAdapter(sys.argv[2])
 
     client = PitWallClient(adapter)
-    await client.start()
+    await client.go()
 
 if __name__ == "__main__":
     asyncio.run(main())
