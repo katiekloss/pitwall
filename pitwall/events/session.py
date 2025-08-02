@@ -23,3 +23,7 @@ class SessionStatus:
 class TrackStatus:
     id: int
     message: str
+
+@dataclass
+class Clock:
+    remaining: str

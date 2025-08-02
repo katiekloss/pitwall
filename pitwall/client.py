@@ -5,7 +5,7 @@ from collections.abc import Callable, Generator
 
 from pitwall.events import Driver, SessionChange, SessionProgress, RaceControlUpdate, \
     TimingDatum, DriverStatusUpdate, SectorTimingDatum, SegmentTimingDatum, SessionStatus, \
-    StintChange, TrackStatus
+    StintChange, TrackStatus, Clock
 
 class PitWallClient:
     update_callbacks: List[Callable[[Update], None]]
@@ -18,6 +18,7 @@ class PitWallClient:
     session_status_callbacks: List[Callable[[SessionStatus], None]]
     stint_change_callbacks: List[Callable[[StintChange], None]]
     track_status_callbacks: List[Callable[[TrackStatus], None]]
+    clock_callbacks: List[Callable[[Clock], None]]
 
     def __init__(self, adapter : PitWallAdapter):
         self.adapter = adapter
@@ -31,6 +32,7 @@ class PitWallClient:
         self.session_status_callbacks = list()
         self.stint_change_callbacks = list()
         self.track_status_callbacks = list()
+        self.clock_callbacks = list()
 
     async def go(self) -> None:
         async for update in self.adapter.run():
@@ -66,6 +68,9 @@ class PitWallClient:
     
     def on_track_status(self, callback: Callable[[TrackStatus], None]) -> None:
         self.track_status_callbacks.append(callback)
+
+    def on_clock(self, callback: Callable[[Clock], None]) -> None:
+        self.clock_callbacks.append(callback)
 
     def update(self, update: Update):
         for callback in self.update_callbacks:
@@ -109,6 +114,9 @@ class PitWallClient:
             self.parse_stints(update.data)
         elif update.src == "TrackStatus":
             self.fire_callbacks(self.track_status_callbacks, TrackStatus(int(update.data["Status"]), update.data["Message"]))
+        elif update.src == "ExtrapolatedClock":
+            self.fire_callbacks(self.clock_callbacks, Clock(update.data["Remaining"]))
+        # elif update.src in ["Heartbeat", "WeatherData", "TeamRadio"]:
 
     def fire_callbacks(self, callbacks: List[Callable[[Any], None]], payload: Any) -> None:
         for callback in callbacks:

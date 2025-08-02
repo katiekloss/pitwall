@@ -9,7 +9,6 @@ from dataclasses import dataclass
 
 from pitwall import PitWallClient
 from pitwall.adapters import CaptureAdapter
-from pitwall.adapters.abstract import Update
 from pitwall.events import SessionChange, Driver, SessionProgress, RaceControlUpdate, TimingDatum, DriverStatusUpdate, SectorTimingDatum, SegmentTimingDatum, StintChange
 
 drivers = dict()
@@ -42,7 +41,6 @@ def main():
         sys.exit(255)
 
     client = PitWallClient(CaptureAdapter(args.input))
-    client.on_update(on_line)
     client.on_session_change(on_session_change)
     client.on_session_progress(on_session_progress)
     client.on_driver_data(init_drivers)
@@ -52,7 +50,8 @@ def main():
     client.on_session_status(lambda s: print(f"Session is {s.status}"))
     client.on_stint_change(on_stint_change)
     client.on_track_status(lambda s: print(f"Track is {s.message} ({s.id})"))
-
+    client.on_clock(lambda c: print(f"Race time is {c.remaining}"))
+    
     try:
         asyncio.run(client.go())
     except Cancel:
@@ -77,16 +76,6 @@ def on_race_control_update(update: RaceControlUpdate) -> None:
 
     if messages == "CHEQUERED FLAG": # usually fired by itself
         raise Cancel()
-
-def on_line(update: Update):
-    src = update.src
-    data = update.data
-            
-    if src == "ExtrapolatedClock":
-        t = data["Remaining"]
-        print(f"Race time is {t}")
-    elif src in ["Heartbeat", "WeatherData", "TeamRadio"]:
-        ...
 
 def change_session(session: SessionChange):
     print(f"Now watching {session.name}: {session.part} ({session.status})")
