@@ -2,8 +2,7 @@ job "pitwall-recorder" {
   type = "batch"
   periodic {
     crons = [
-      "15 6 2 8 *",
-      "45 9 2 8 *"
+      "45 8 3 8 *"
     ]
     prohibit_overlap = true
     time_zone = "America/New_York"
@@ -20,7 +19,7 @@ job "pitwall-recorder" {
       }
 
       restart {
-        attempts = 5
+        attempts = 10
       }
 
       artifact {
