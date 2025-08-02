@@ -14,3 +14,7 @@ class SessionProgress:
 @dataclass
 class RaceControlUpdate:
     messages: List[str]
+
+@dataclass
+class SessionStatus:
+    status: str

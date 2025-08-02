@@ -10,8 +10,7 @@ from dataclasses import dataclass
 from pitwall import PitWallClient
 from pitwall.adapters import CaptureAdapter
 from pitwall.adapters.abstract import Update
-from pitwall.events import SessionChange, Driver, SessionProgress, RaceControlUpdate, TimingDatum
-from pitwall.events.timing import DriverStatusUpdate, SectorTimingDatum, SegmentTimingDatum
+from pitwall.events import SessionChange, Driver, SessionProgress, RaceControlUpdate, TimingDatum, DriverStatusUpdate, SectorTimingDatum, SegmentTimingDatum
 
 drivers = dict()
 statuses = dict()
@@ -50,6 +49,7 @@ def main():
     client.on_race_control_update(on_race_control_update)
     client.on_timing_datum(on_timing_data)
     client.on_driver_status_update(on_driver_status_update)
+    client.on_session_status(lambda s: print(f"Session is {s.status}"))
 
     try:
         asyncio.run(client.go())
@@ -81,10 +81,7 @@ def on_line(update: Update):
         print(f"Reached lap {lap}")
         return
 
-    if src == "SessionStatus":
-        status = data["Status"]
-        print(f"Session is {status}")
-    elif src == "TimingAppData" or src == "TimingStats":
+    if src == "TimingAppData" or src == "TimingStats":
         for driver_id in data["Lines"].keys():
             if args.driver is not None and args.driver != driver_id:
                 continue

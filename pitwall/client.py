@@ -3,7 +3,7 @@ import warnings
 from pitwall.adapters.abstract import PitWallAdapter, Update
 from collections.abc import Callable, Generator
 
-from pitwall.events import Driver, SessionChange, SessionProgress, RaceControlUpdate, TimingDatum, DriverStatusUpdate, SectorTimingDatum, SegmentTimingDatum
+from pitwall.events import Driver, SessionChange, SessionProgress, RaceControlUpdate, TimingDatum, DriverStatusUpdate, SectorTimingDatum, SegmentTimingDatum, SessionStatus
 
 class PitWallClient:
     update_callbacks: List[Callable[[Update], None]]
@@ -13,6 +13,7 @@ class PitWallClient:
     race_control_update_callbacks: List[Callable[[RaceControlUpdate], None]]
     timing_data_callbacks: List[Callable[[TimingDatum], None]]
     driver_status_update_callbacks: List[Callable[[DriverStatusUpdate], None]]
+    session_status_callbacks: List[Callable[[SessionStatus], None]]
 
     def __init__(self, adapter : PitWallAdapter):
         self.adapter = adapter
@@ -23,6 +24,7 @@ class PitWallClient:
         self.race_control_update_callbacks = list()
         self.timing_data_callbacks = list()
         self.driver_status_update_callbacks = list()
+        self.session_status_callbacks = list()
 
     async def go(self) -> None:
         async for update in self.adapter.run():
@@ -49,6 +51,9 @@ class PitWallClient:
 
     def on_driver_status_update(self, callback: Callable[[DriverStatusUpdate], None]) -> None:
         self.driver_status_update_callbacks.append(callback)
+
+    def on_session_status(self, callback: Callable[[SessionStatus], None]) -> None:
+        self.session_status_callbacks.append(callback)
 
     def update(self, update: Update):
         for callback in self.update_callbacks:
@@ -85,6 +90,8 @@ class PitWallClient:
         elif update.src == "TimingData":
             for datum in self.handle_timing_data(update.data):
                 self.fire_callbacks(self.timing_data_callbacks, datum)
+        elif update.src == "SessionStatus":
+            self.fire_callbacks(self.session_status_callbacks, SessionStatus(update.data["Status"]))
 
     def fire_callbacks(self, callbacks: List[Callable[[Any], None]], payload: Any) -> None:
         for callback in callbacks:

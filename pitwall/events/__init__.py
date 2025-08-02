@@ -1,3 +1,3 @@
-from .session import SessionChange as SessionChange, SessionProgress as SessionProgress, RaceControlUpdate as RaceControlUpdate
+from .session import SessionChange as SessionChange, SessionProgress as SessionProgress, RaceControlUpdate as RaceControlUpdate, SessionStatus as SessionStatus
 from .drivers import Driver as Driver
 from .timing import TimingDatum as TimingDatum, LapTimingDatum as LapTimingDatum, SectorTimingDatum as SectorTimingDatum, SegmentTimingDatum as SegmentTimingDatum, DriverStatusUpdate as DriverStatusUpdate
