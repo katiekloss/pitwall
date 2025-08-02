@@ -1,4 +1,14 @@
 job "pitwall-recorder" {
+  type = "batch"
+  periodic {
+    crons = [
+      "15 6 2 8 *",
+      "45 9 2 8 *"
+    ]
+    prohibit_overlap = true
+    time_zone = "America/New_York"
+  }
+
   group "recorder" {
     task "run" {
       driver = "exec"
@@ -14,7 +24,7 @@ job "pitwall-recorder" {
       }
 
       artifact {
-        source = "https://code.kat5.dev/kat/pitwall/archive/parsing.zip"
+        source = "https://code.kat5.dev/katie/pitwall/archive/main.zip"
         destination = "/alloc"
       }
     }
