@@ -11,10 +11,12 @@ from pitwall import PitWallClient
 from pitwall.adapters import CaptureAdapter
 from pitwall.adapters.abstract import Update
 from pitwall.events import SessionChange, Driver, SessionProgress, RaceControlUpdate, TimingDatum
+from pitwall.events.timing import SectorTimingDatum, SegmentTimingDatum
 
 drivers = dict()
 statuses = dict()
 locations = dict()
+sector_leaders = dict()
 lap = 1
 
 @dataclass
@@ -46,7 +48,8 @@ def main():
     client.on_session_progress(on_session_progress)
     client.on_driver_data(init_drivers)
     client.on_race_control_update(on_race_control_update)
-    client.on_timing_data(on_timing_data)
+    client.on_timing_datum(on_timing_data)
+    client.on_driver_status_update(lambda u: print(f"\t{u.driver_id} stopped in sector {u.sector_id}"))
 
     try:
         asyncio.run(client.go())
@@ -114,23 +117,28 @@ def init_drivers(data: List[Driver]):
         drivers[str(driver.number)] = DriverSummary(driver.number, driver.broadcast_name, 1)
 
 def on_timing_data(data: TimingDatum) -> None:
-    for segment_id in sector["Segments"].keys(): # order these?
-        segment = sector["Segments"][segment_id]
-        segment_id = int(segment_id)
-        status = segment["Status"]
-
-        if status > 0 and status != 2052:
-            if driver_id in locations:
-                last_location = locations[driver_id]
-                if sector_id == 0 and segment_id <= 1:
-                    locations[driver_id] = (0, 0)
-                elif last_location[0] < sector_id or last_location[1] < segment_id:
-                    locations[driver_id] = (sector_id, segment_id)
+    if isinstance(data, SegmentTimingDatum):
+        segment: SegmentTimingDatum = data
+        if segment.status > 0 and segment.status != 2052: # I don't remember what this means, but it's written on a post-it in my office somewhere
+            if segment.driver_id in locations:
+                last_location = locations[segment.driver_id]
+                if segment.sector_id == 0 and segment.segment_id <= 1:
+                    locations[segment.driver_id] = (0, 0)
+                elif last_location[0] < segment.sector_id or last_location[1] < segment.segment_id:
+                    locations[segment.driver_id] = (segment.sector_id, segment.segment_id)
             else:
-                locations[driver_id] = (sector_id, segment_id)
+                locations[segment.driver_id] = (segment.sector_id, segment.segment_id)
 
-        if status not in statuses:
-            statuses[status] = f"{drivers[driver_id]} at {lap}:{sector_id}:{segment_id}"
+        if segment.status not in statuses:
+            statuses[segment.status] = f"{drivers[segment.driver_id]} at {lap}:{segment.sector_id}:{segment.segment_id}"
+    elif isinstance(data, SectorTimingDatum):
+        sector: SectorTimingDatum = data
+        if sector.overall_fastest:
+            if sector.sector_id not in sector_leaders or sector_leaders[sector.sector_id] != data.driver_id:
+                print(f"\t{drivers[data.driver_id]} overall fastest sector {sector.sector_id} ({sector.time})")
+                sector_leaders[sector.sector_id] = data.driver_id
+        #elif sector.personal_fastest:
+        #    print(f"\t{drivers[data.driver_id]} personal fastest sector {sector.sector_id} ({sector.time})")
     
 if __name__ == "__main__":
     global args

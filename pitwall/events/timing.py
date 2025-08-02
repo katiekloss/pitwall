@@ -8,14 +8,14 @@ class TimingDatum:
 class SegmentTimingDatum(TimingDatum):
     sector_id: int
     segment_id: int
-    personal_fastest: bool
-    time: float
+    status: int
 
 @dataclass
 class SectorTimingDatum(TimingDatum):
     sector_id: int
     personal_fastest: bool
     overall_fastest: bool
+    """Set if the driver currently holds the sector's fastest time (even if it was achieved on a previous lap)"""
     time: float
 
 @dataclass
@@ -27,4 +27,5 @@ class LapTimingDatum(TimingDatum):
 
 @dataclass
 class DriverStatusUpdate(TimingDatum):
+    sector_id: int
     stopped: bool
