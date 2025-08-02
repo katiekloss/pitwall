@@ -6,4 +6,5 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
       - uses: https://github.com/astral-sh/setup-uv@v6
-      - run: find data/ -type f | xargs -I % uv run --no-progress watch.py -i % > /dev/null
+      - name: Run watch.py
+        run: find data/ -type f | xargs -I % uv run --no-progress watch.py -i %
