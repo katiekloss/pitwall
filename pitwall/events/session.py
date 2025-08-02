@@ -18,3 +18,8 @@ class RaceControlUpdate:
 @dataclass
 class SessionStatus:
     status: str
+
+@dataclass
+class TrackStatus:
+    id: int
+    message: str

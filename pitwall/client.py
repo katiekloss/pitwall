@@ -3,7 +3,9 @@ import warnings
 from pitwall.adapters.abstract import PitWallAdapter, Update
 from collections.abc import Callable, Generator
 
-from pitwall.events import Driver, SessionChange, SessionProgress, RaceControlUpdate, TimingDatum, DriverStatusUpdate, SectorTimingDatum, SegmentTimingDatum, SessionStatus, StintChange
+from pitwall.events import Driver, SessionChange, SessionProgress, RaceControlUpdate, \
+    TimingDatum, DriverStatusUpdate, SectorTimingDatum, SegmentTimingDatum, SessionStatus, \
+    StintChange, TrackStatus
 
 class PitWallClient:
     update_callbacks: List[Callable[[Update], None]]
@@ -15,6 +17,7 @@ class PitWallClient:
     driver_status_update_callbacks: List[Callable[[DriverStatusUpdate], None]]
     session_status_callbacks: List[Callable[[SessionStatus], None]]
     stint_change_callbacks: List[Callable[[StintChange], None]]
+    track_status_callbacks: List[Callable[[TrackStatus], None]]
 
     def __init__(self, adapter : PitWallAdapter):
         self.adapter = adapter
@@ -27,6 +30,7 @@ class PitWallClient:
         self.driver_status_update_callbacks = list()
         self.session_status_callbacks = list()
         self.stint_change_callbacks = list()
+        self.track_status_callbacks = list()
 
     async def go(self) -> None:
         async for update in self.adapter.run():
@@ -59,6 +63,9 @@ class PitWallClient:
 
     def on_stint_change(self, callback: Callable[[StintChange], None]) -> None:
         self.stint_change_callbacks.append(callback)
+    
+    def on_track_status(self, callback: Callable[[TrackStatus], None]) -> None:
+        self.track_status_callbacks.append(callback)
 
     def update(self, update: Update):
         for callback in self.update_callbacks:
@@ -100,6 +107,8 @@ class PitWallClient:
             self.fire_callbacks(self.session_status_callbacks, SessionStatus(update.data["Status"]))
         elif update.src == "TimingAppData" or update.src == "TimingStats":
             self.parse_stints(update.data)
+        elif update.src == "TrackStatus":
+            self.fire_callbacks(self.track_status_callbacks, TrackStatus(int(update.data["Status"]), update.data["Message"]))
 
     def fire_callbacks(self, callbacks: List[Callable[[Any], None]], payload: Any) -> None:
         for callback in callbacks:

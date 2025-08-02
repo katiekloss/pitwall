@@ -51,6 +51,7 @@ def main():
     client.on_driver_status_update(on_driver_status_update)
     client.on_session_status(lambda s: print(f"Session is {s.status}"))
     client.on_stint_change(on_stint_change)
+    client.on_track_status(lambda s: print(f"Track is {s.message} ({s.id})"))
 
     try:
         asyncio.run(client.go())
@@ -66,6 +67,9 @@ def on_session_progress(progress: SessionProgress) -> None:
     global lap
     lap = progress.lap
     print(f"Lap {lap}")
+    
+    if args.to > 0 and lap >= args.to:
+        raise Cancel()
 
 def on_race_control_update(update: RaceControlUpdate) -> None:
     messages = ", ".join([x["Message"] for x in update.messages])
@@ -77,16 +81,8 @@ def on_race_control_update(update: RaceControlUpdate) -> None:
 def on_line(update: Update):
     src = update.src
     data = update.data
-
-    if args.to > 0 and lap >= args.to:
-        print(f"Reached lap {lap}")
-        return
             
-    if src == "TrackStatus":
-        message = data["Message"]
-        status = data["Status"]
-        print(f"Track is {message} ({status})")
-    elif src == "ExtrapolatedClock":
+    if src == "ExtrapolatedClock":
         t = data["Remaining"]
         print(f"Race time is {t}")
     elif src in ["Heartbeat", "WeatherData", "TeamRadio"]:
