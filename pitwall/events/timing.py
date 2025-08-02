@@ -29,3 +29,9 @@ class LapTimingDatum(TimingDatum):
 class DriverStatusUpdate(TimingDatum):
     sector_id: int
     stopped: bool
+
+@dataclass
+class StintChange:
+    driver_id: int
+    stint_number: int
+    compound: str

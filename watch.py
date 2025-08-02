@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from pitwall import PitWallClient
 from pitwall.adapters import CaptureAdapter
 from pitwall.adapters.abstract import Update
-from pitwall.events import SessionChange, Driver, SessionProgress, RaceControlUpdate, TimingDatum, DriverStatusUpdate, SectorTimingDatum, SegmentTimingDatum
+from pitwall.events import SessionChange, Driver, SessionProgress, RaceControlUpdate, TimingDatum, DriverStatusUpdate, SectorTimingDatum, SegmentTimingDatum, StintChange
 
 drivers = dict()
 statuses = dict()
@@ -50,6 +50,7 @@ def main():
     client.on_timing_datum(on_timing_data)
     client.on_driver_status_update(on_driver_status_update)
     client.on_session_status(lambda s: print(f"Session is {s.status}"))
+    client.on_stint_change(on_stint_change)
 
     try:
         asyncio.run(client.go())
@@ -80,27 +81,8 @@ def on_line(update: Update):
     if args.to > 0 and lap >= args.to:
         print(f"Reached lap {lap}")
         return
-
-    if src == "TimingAppData" or src == "TimingStats":
-        for driver_id in data["Lines"].keys():
-            if args.driver is not None and args.driver != driver_id:
-                continue
-
-            if driver_id not in drivers:
-                print(f"Timing data for unknown driver {driver_id}")
-                continue
-            driver_line = data["Lines"][driver_id]
-            if "Stints" in driver_line:
-                print(driver_line["Stints"])
-                for stint_number in driver_line["Stints"]:
-                    if isinstance(stint_number, dict): # stint 0
-                        drivers[driver_id].max_stint = 0
-                        continue
-                    elif int(stint_number) > drivers[driver_id].max_stint:
-                        drivers[driver_id].max_stint = int(stint_number)
-                        print(f"{drivers[driver_id]} started stint {stint_number}")
-                    # stint = driver_line["Stints"][stint_number]
-    elif src == "TrackStatus":
+            
+    if src == "TrackStatus":
         message = data["Message"]
         status = data["Status"]
         print(f"Track is {message} ({status})")
@@ -115,7 +97,7 @@ def change_session(session: SessionChange):
 
 def init_drivers(data: List[Driver]):
     for driver in data:
-        drivers[str(driver.number)] = DriverSummary(driver.number, driver.broadcast_name, 1)
+        drivers[str(driver.number)] = DriverSummary(driver.number, driver.broadcast_name, 0)
 
 def on_timing_data(data: TimingDatum) -> None:
     if args.driver is not None and args.driver != data.driver_id:
@@ -148,6 +130,17 @@ def on_driver_status_update(update: DriverStatusUpdate):
     if args.driver is not None and args.driver != update.driver_id:
         return
     print(f"\t{update.driver_id} stopped in sector {update.sector_id}")
+
+def on_stint_change(stint: StintChange):
+    if args.driver is not None and args.driver != stint.driver_id:
+        return
+    elif stint.driver_id not in drivers:
+        print(f"Stint data for unknown driver {stint.driver_id}")
+        return
+
+    if stint.stint_number > drivers[stint.driver_id].max_stint:
+        print(f"{drivers[stint.driver_id]} started stint {stint.stint_number} on {stint.compound}")
+        drivers[stint.driver_id].max_stint = stint.stint_number
 
 if __name__ == "__main__":
     global args
