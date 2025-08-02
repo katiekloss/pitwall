@@ -107,14 +107,11 @@ if __name__ == "__main__":
     global args
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-o", "--output")
+    parser.add_argument("-o", "--output", required=True)
     parser.add_argument("-c", "--continuous", action="store_true")
     args = parser.parse_args()
 
     if not args.continuous:
-        if not args.output:
-            raise Exception("Output file required")
-
         out_file = open(args.output, "a")
 
     try:
