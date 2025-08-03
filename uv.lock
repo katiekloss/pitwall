@@ -268,6 +268,7 @@ dependencies = [
     { name = "orjson" },
     { name = "pysignalr" },
     { name = "requests" },
+    { name = "sav-channels" },
     { name = "ty" },
 ]
 
@@ -282,6 +283,7 @@ requires-dist = [
     { name = "orjson", specifier = ">=3.11.1" },
     { name = "pysignalr", specifier = ">=1.3.0" },
     { name = "requests", specifier = ">=2.32.4" },
+    { name = "sav-channels", specifier = ">=0.5" },
     { name = "ty", specifier = ">=0.0.1a16" },
 ]
 
@@ -382,6 +384,15 @@ wheels = [
     { url = "https://pypi.svc.kat5.dev/index/ruff/ruff-0.12.7-py3-none-win32.whl", hash = "sha256:c928f1b2ec59fb77dfdf70e0419408898b63998789cc98197e15f560b9e77f77" },
     { url = "https://pypi.svc.kat5.dev/index/ruff/ruff-0.12.7-py3-none-win_amd64.whl", hash = "sha256:9c18f3d707ee9edf89da76131956aba1270c6348bfee8f6c647de841eac7194f" },
     { url = "https://pypi.svc.kat5.dev/index/ruff/ruff-0.12.7-py3-none-win_arm64.whl", hash = "sha256:dfce05101dbd11833a0776716d5d1578641b7fddb537fe7fa956ab85d1769b69" },
+]
+
+[[package]]
+name = "sav-channels"
+version = "0.5"
+source = { registry = "https://pypi.svc.kat5.dev/index" }
+sdist = { url = "https://pypi.svc.kat5.dev/index/sav-channels/sav.channels-0.5.tar.gz", hash = "sha256:aaffa3baefd3821d44b77916febbedc44b78c010f0f9c5f409955bce55134ee3" }
+wheels = [
+    { url = "https://pypi.svc.kat5.dev/index/sav-channels/sav.channels-0.5-py3-none-any.whl", hash = "sha256:88791a924b0db964362b9671d0b7251ff52fc36d5c830b2d15e7038b7fdc7e1a" },
 ]
 
 [[package]]

@@ -8,6 +8,7 @@ dependencies = [
     "orjson>=3.11.1",
     "pysignalr>=1.3.0",
     "requests>=2.32.4",
+    "sav-channels>=0.5",
     "ty>=0.0.1a16",
 ]
 

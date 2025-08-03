@@ -7,6 +7,9 @@ import os
 
 from pysignalr.client import SignalRClient
 
+from pitwall.client import Update
+from pitwall.adapters import WebsocketAdapter
+
 last_update = time.time()
 out_file = None
 current_session_key = None
@@ -23,7 +26,7 @@ async def on_close():
 async def on_error(x):
     print(f"error: {x}")
 
-async def on_feed(update):
+async def on_feed(update: Update):
     global last_update
     global out_file
     global current_session_key
@@ -31,9 +34,9 @@ async def on_feed(update):
     last_update = time.time()
 
     now = time.time_ns()
-    source = update[0]
-    data = orjson.dumps(update[1]).decode('utf-8')
-
+    source = update.src
+    data = update.data
+    
     if source == "SessionInfo" and args.continuous:
         if update[1]["Key"] != current_session_key:
             current_session_key = update[1]["Key"]
@@ -91,17 +94,9 @@ def write(line):
     out_file.flush()
 
 async def main():
-    timing_client = SignalRClient("wss://livetiming.formula1.com/signalrcore", connection_timeout=30)
-
-    timing_client.on_open(on_open)
-    timing_client.on_close(on_close)
-    timing_client.on_error(on_error)
-    timing_client.on("feed", on_feed)
-
-    await asyncio.gather(
-        timing_client.run(),
-        timing_client.send("Subscribe", [["SessionInfo", "Heartbeat", "DriverList", "ExtrapolatedClock", "RaceControlMessages", "SessionStatus", "TeamRadio", "TimingAppData", "TimingStats", "TrackStatus", "WeatherData", "Position.z", "CarData.z", "SessionData", "TimingData"]], on_subscribe),
-        timeout())
+    adapter = WebsocketAdapter(SignalRClient("wss://livetiming.formula1.com/signalrcore", connection_timeout=30))
+    adapter.on_update(on_feed)
+    await adapter.run()
 
 if __name__ == "__main__":
     global args
