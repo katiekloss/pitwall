@@ -9,7 +9,7 @@ from dataclasses import dataclass
 
 from pitwall import PitWallClient
 from pitwall.adapters import CaptureAdapter
-from pitwall.events import SessionChange, Driver, SessionProgress, RaceControlUpdate, TimingDatum, DriverStatusUpdate, \
+from pitwall.events import SessionChange, Driver, SessionProgress, RaceControlMessage, TimingDatum, DriverStatusUpdate, \
                            SectorTimingDatum, SegmentTimingDatum, StintChange
 
 @dataclass
@@ -71,8 +71,8 @@ def on_session_progress(progress: SessionProgress) -> None:
     if args.to > 0 and lap >= args.to:
         raise Cancel()
 
-def on_race_control_update(update: RaceControlUpdate) -> None:
-    messages = ", ".join([x["Message"] for x in update.messages])
+def on_race_control_update(updates: List[RaceControlMessage]) -> None:
+    messages = ", ".join([x.message for x in updates])
     print(f"Race control: {messages}")
 
     if messages == "CHEQUERED FLAG": # usually fired by itself

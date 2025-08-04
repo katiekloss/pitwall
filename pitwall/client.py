@@ -3,7 +3,7 @@ import warnings
 from pitwall.adapters.abstract import PitWallAdapter, Update
 from collections.abc import Callable, Generator
 
-from pitwall.events import Driver, SessionChange, SessionProgress, RaceControlUpdate, \
+from pitwall.events import Driver, SessionChange, SessionProgress, RaceControlMessage, \
     TimingDatum, DriverStatusUpdate, SectorTimingDatum, SegmentTimingDatum, SessionStatus, \
     StintChange, TrackStatus, Clock
 
@@ -12,7 +12,7 @@ class PitWallClient:
     session_change_callbacks: List[Callable[[SessionChange], None]]
     driver_data_callbacks: List[Callable[[List[Driver]], None]]
     session_progress_callbacks: List[Callable[[SessionProgress], None]]
-    race_control_update_callbacks: List[Callable[[RaceControlUpdate], None]]
+    race_control_update_callbacks: List[Callable[[List[RaceControlMessage]], None]]
     timing_data_callbacks: List[Callable[[TimingDatum], None]]
     driver_status_update_callbacks: List[Callable[[DriverStatusUpdate], None]]
     session_status_callbacks: List[Callable[[SessionStatus], None]]
@@ -51,7 +51,7 @@ class PitWallClient:
     def on_session_progress(self, callback: Callable[[SessionProgress], None]) -> None:
         self.session_progress_callbacks.append(callback)
 
-    def on_race_control_update(self, callback: Callable[[RaceControlUpdate], None]) -> None:
+    def on_race_control_update(self, callback: Callable[[List[RaceControlMessage]], None]) -> None:
         self.race_control_update_callbacks.append(callback)
 
     def on_timing_datum(self, callback: Callable[[TimingDatum], None]) -> None:
@@ -80,6 +80,7 @@ class PitWallClient:
             self.fire_callbacks(self.driver_data_callbacks, self.parse_drivers(update.data["DriverList"]))
             self.fire_callbacks(self.session_change_callbacks, self.parse_session(update.data["SessionInfo"]))
             self.parse_stints(update.data["TimingAppData"])
+            self.parse_messages(update.data["RaceControlMessages"]["Messages"])
         elif update.src == "SessionInfo":
             self.fire_callbacks(self.session_change_callbacks, self.parse_session(update.data))
         elif update.src == "DriverList":
@@ -98,13 +99,7 @@ class PitWallClient:
             else:
                 raise KeyError("Unknown SessionData format")
         elif update.src == "RaceControlMessages":
-            if isinstance(update.data["Messages"], list):
-                messages = update.data["Messages"]
-            elif isinstance(update.data["Messages"], dict):
-                messages = list(update.data["Messages"].values())
-
-            # bug: messages is a list of dicts, not a list of strings
-            self.fire_callbacks(self.race_control_update_callbacks, RaceControlUpdate(messages))
+            self.parse_messages(update.data["Messages"])
         elif update.src == "TimingData":
             for datum in self.handle_timing_data(update.data):
                 self.fire_callbacks(self.timing_data_callbacks, datum)
@@ -194,3 +189,22 @@ class PitWallClient:
                         self.fire_callbacks(self.stint_change_callbacks, StintChange(int(driver_id), 1, stint_number["Compound"]))
                     elif "Compound" in driver_line["Stints"][stint_number]:
                         self.fire_callbacks(self.stint_change_callbacks, StintChange(int(driver_id), int(stint_number) + 1, driver_line["Stints"][stint_number]["Compound"]))
+
+    def parse_messages(self, messages: List[Dict[str, Any]] | Dict[str, Any]):
+        def parse_message(x: Dict[str, Any]):
+            message = RaceControlMessage(x["Category"], None, None, x["Message"], None, None)
+            if "Lap" in x:
+                message.lap = x["Lap"]
+            if "Sector" in x:
+                message.sector = x["Sector"]
+            if "Flag" in x:
+                message.flag = x["Flag"]
+            if "Scope" in x:
+                message.scope = x["Scope"]
+            return message
+        
+        if isinstance(messages, dict):
+            # after initial subscribe, it becomes a dict keyed by a monotonic int sequence
+            messages = list(messages.values())
+        
+        self.fire_callbacks(self.race_control_update_callbacks, [parse_message(x) for x in messages])

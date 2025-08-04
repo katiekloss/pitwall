@@ -12,9 +12,13 @@ class SessionProgress:
     lap: int # not always though
 
 @dataclass
-class RaceControlUpdate:
-    # bug: not actually a string
-    messages: List[str]
+class RaceControlMessage:
+    category: str
+    flag: str
+    scope: str
+    message: str
+    lap: int
+    sector: int
 
 @dataclass
 class SessionStatus:
