@@ -4,27 +4,28 @@ import sys
 import argparse
 import time
 import os
-from typing import List
+from typing import Any, Dict, List, Tuple
 from dataclasses import dataclass
 
 from pitwall import PitWallClient
 from pitwall.adapters import CaptureAdapter
-from pitwall.events import SessionChange, Driver, SessionProgress, RaceControlUpdate, TimingDatum, DriverStatusUpdate, SectorTimingDatum, SegmentTimingDatum, StintChange
-
-drivers = dict()
-statuses = dict()
-locations = dict()
-sector_leaders = dict()
-lap = 1
+from pitwall.events import SessionChange, Driver, SessionProgress, RaceControlUpdate, TimingDatum, DriverStatusUpdate, \
+                           SectorTimingDatum, SegmentTimingDatum, StintChange
 
 @dataclass
 class DriverSummary:
     number: int
     broadcast_name: str
     max_stint: int
+    location: Tuple[int, int]
 
     def __repr__(self):
         return f"{self.broadcast_name} ({self.number})"
+
+drivers: Dict[int, DriverSummary] = dict()
+statuses = dict()
+sector_leaders = dict()
+lap = 1
 
 class Cancel(Exception):
     ...
@@ -51,7 +52,7 @@ def main():
     client.on_stint_change(on_stint_change)
     client.on_track_status(lambda s: print(f"Track is {s.message} ({s.id})"))
     client.on_clock(lambda c: print(f"Race time is {c.remaining}"))
-    
+
     try:
         asyncio.run(client.go())
     except Cancel:
@@ -82,7 +83,7 @@ def change_session(session: SessionChange):
 
 def init_drivers(data: List[Driver]):
     for driver in data:
-        drivers[str(driver.number)] = DriverSummary(driver.number, driver.broadcast_name, 0)
+        drivers[driver.number] = DriverSummary(driver.number, driver.broadcast_name, 0, (0, 0))
 
 def on_timing_data(data: TimingDatum) -> None:
     if args.driver is not None and args.driver != data.driver_id:
@@ -91,14 +92,11 @@ def on_timing_data(data: TimingDatum) -> None:
     if isinstance(data, SegmentTimingDatum):
         segment: SegmentTimingDatum = data
         if segment.status > 0 and segment.status != 2052: # I don't remember what this means, but it's written on a post-it in my office somewhere
-            if segment.driver_id in locations:
-                last_location = locations[segment.driver_id]
-                if segment.sector_id == 0 and segment.segment_id <= 1:
-                    locations[segment.driver_id] = (0, 0)
-                elif last_location[0] < segment.sector_id or last_location[1] < segment.segment_id:
-                    locations[segment.driver_id] = (segment.sector_id, segment.segment_id)
-            else:
-                locations[segment.driver_id] = (segment.sector_id, segment.segment_id)
+            last_location = drivers[segment.driver_id].location
+            if segment.sector_id == 0 and segment.segment_id <= 1:
+                drivers[segment.driver_id].location = (0, 0)
+            elif last_location[0] < segment.sector_id or last_location[1] < segment.segment_id:
+                drivers[segment.driver_id].location = (segment.sector_id, segment.segment_id)
 
         if segment.status not in statuses:
             statuses[segment.status] = f"{drivers[segment.driver_id]} at {lap}:{segment.sector_id}:{segment.segment_id}"
@@ -114,12 +112,13 @@ def on_timing_data(data: TimingDatum) -> None:
 def on_driver_status_update(update: DriverStatusUpdate):
     if args.driver is not None and args.driver != update.driver_id:
         return
-    print(f"\t{update.driver_id} stopped in sector {update.sector_id}")
+    print(f"\t{drivers[update.driver_id]} stopped in sector {update.sector_id}")
 
 def on_stint_change(stint: StintChange):
     if args.driver is not None and args.driver != stint.driver_id:
         return
     elif stint.driver_id not in drivers:
+        # idk that this is necessary anymore
         print(f"Stint data for unknown driver {stint.driver_id}")
         return
 

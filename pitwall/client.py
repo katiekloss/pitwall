@@ -159,7 +159,7 @@ class PitWallClient:
                 sector_id = int(sector_id)
 
                 if "Stopped" in sector:
-                    self.fire_callbacks(self.driver_status_update_callbacks, DriverStatusUpdate(driver_id, sector_id, True))
+                    self.fire_callbacks(self.driver_status_update_callbacks, DriverStatusUpdate(int(driver_id), sector_id, True))
                     continue
                 
                 elif "PreviousValue" in sector:
@@ -172,7 +172,7 @@ class PitWallClient:
                     # print(f"\t{sector}")
                     if "Value" in sector and sector["Value"] != "":
                         # if not, I think it's JUST OverallFastest=false to clear someone's previous True?
-                        yield SectorTimingDatum(driver_id, sector_id, personal_fastest, overall_fastest, float(sector["Value"]))
+                        yield SectorTimingDatum(int(driver_id), sector_id, personal_fastest, overall_fastest, float(sector["Value"]))
                     continue
                 
                 if isinstance(sector["Segments"], list): # same as the above one for driver[Sectors]
@@ -183,7 +183,7 @@ class PitWallClient:
                     segment_id = int(segment_id)
                     status: int = segment["Status"]
 
-                    yield SegmentTimingDatum(driver_id, sector_id, segment_id, status)
+                    yield SegmentTimingDatum(int(driver_id), sector_id, segment_id, status)
 
     def parse_stints(self, data) -> None:
         for driver_id in data["Lines"].keys():
@@ -191,6 +191,6 @@ class PitWallClient:
             if "Stints" in driver_line:
                 for stint_number in driver_line["Stints"]:
                     if isinstance(stint_number, dict): # stint 0
-                        self.fire_callbacks(self.stint_change_callbacks, StintChange(driver_id, 1, stint_number["Compound"]))
+                        self.fire_callbacks(self.stint_change_callbacks, StintChange(int(driver_id), 1, stint_number["Compound"]))
                     elif "Compound" in driver_line["Stints"][stint_number]:
-                        self.fire_callbacks(self.stint_change_callbacks, StintChange(driver_id, int(stint_number) + 1, driver_line["Stints"][stint_number]["Compound"]))
+                        self.fire_callbacks(self.stint_change_callbacks, StintChange(int(driver_id), int(stint_number) + 1, driver_line["Stints"][stint_number]["Compound"]))
