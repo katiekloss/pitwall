@@ -4,7 +4,7 @@ import sys
 import argparse
 import time
 import os
-from typing import Any, Dict, List, Tuple
+from typing import Dict, List, Tuple
 from dataclasses import dataclass
 
 from pitwall import PitWallClient
@@ -123,8 +123,10 @@ def on_stint_change(stint: StintChange):
         return
 
     if stint.stint_number > drivers[stint.driver_id].max_stint:
-        print(f"{drivers[stint.driver_id]} started stint {stint.stint_number} on {stint.compound}")
+        print(f"{drivers[stint.driver_id]} started stint {stint.stint_number} on {stint.compound} tyres")
         drivers[stint.driver_id].max_stint = stint.stint_number
+    else:
+        print(f"Correction: stint {stint.stint_number} for {drivers[stint.driver_id]} is on {stint.compound} tyres")
 
 if __name__ == "__main__":
     global args
