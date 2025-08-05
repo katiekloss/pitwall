@@ -116,8 +116,8 @@ class PitWallClient:
         drivers = list()
         if isinstance(driver_data, dict):
             for driver_id in driver_data.keys():
-                if driver_id == "_kf": # does this rely on its order?
-                    break
+                if driver_id == "_kf": # idk what this is but SignalR LOVES serializing it
+                    continue
 
                 if "BroadcastName" not in driver_data[driver_id]:
                     continue
