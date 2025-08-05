@@ -12,6 +12,11 @@ class SessionProgress:
     lap: int # not always though
 
 @dataclass
+class QualifyingSessionProgress:
+    part: int
+    """Indicates whether the session is in Q1, Q2, or Q3"""
+
+@dataclass
 class RaceControlMessage:
     category: str
     flag: str

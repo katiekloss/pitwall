@@ -5,7 +5,7 @@ from collections.abc import Callable, Generator
 
 from pitwall.events import Driver, SessionChange, SessionProgress, RaceControlMessage, \
     TimingDatum, DriverStatusUpdate, SectorTimingDatum, SegmentTimingDatum, SessionStatus, \
-    StintChange, TrackStatus, Clock
+    StintChange, TrackStatus, Clock, QualifyingSessionProgress
 
 class PitWallClient:
     update_callbacks: List[Callable[[Update], None]]
@@ -80,24 +80,16 @@ class PitWallClient:
             self.fire_callbacks(self.driver_data_callbacks, self.parse_drivers(update.data["DriverList"]))
             self.fire_callbacks(self.session_change_callbacks, self.parse_session(update.data["SessionInfo"]))
             self.parse_stints(update.data["TimingAppData"])
-            self.parse_messages(update.data["RaceControlMessages"]["Messages"])
+            self.parse_session_data(update.data["SessionData"])
+            # sometimes it's after the initial subscribe, but in the init format
+            if "RaceControlMessages" in update.data:
+                self.parse_messages(update.data["RaceControlMessages"]["Messages"])
         elif update.src == "SessionInfo":
             self.fire_callbacks(self.session_change_callbacks, self.parse_session(update.data))
         elif update.src == "DriverList":
             self.fire_callbacks(self.driver_data_callbacks, self.parse_drivers(update.data))
         elif update.src == "SessionData":
-            # what are these for, again?
-            if "Series" not in update.data or isinstance(update.data["Series"], list):
-                return
-
-            session = update.data["Series"][list(update.data["Series"].keys())[0]]
-            if "Lap" in session:
-                lap = int(update.data["Series"][list(update.data["Series"].keys())[0]]["Lap"])
-                self.fire_callbacks(self.session_progress_callbacks, SessionProgress(lap))
-            elif "QualifyingPart" in session:
-                ... # TODO: fire events for Q1/2/3 instead?
-            else:
-                raise KeyError("Unknown SessionData format")
+            self.parse_session_data(update.data)
         elif update.src == "RaceControlMessages":
             self.parse_messages(update.data["Messages"])
         elif update.src == "TimingData":
@@ -208,3 +200,22 @@ class PitWallClient:
             messages = list(messages.values())
         
         self.fire_callbacks(self.race_control_update_callbacks, [parse_message(x) for x in messages])
+    
+    def parse_session_data(self, data: Dict[str, Any]) -> None:
+        if "Series" not in data:
+            # usually contains StatusSeries instead, which I don't know the meaning of
+            return
+        
+        # sometimes you get two QualifyingPart entries, 0 and 1, so use the last one
+        if isinstance(data["Series"], list):
+            session = data["Series"][-1]
+        else:
+            session = list(data["Series"].values())[-1]
+
+        if "Lap" in session:
+            lap = int(session["Lap"])
+            self.fire_callbacks(self.session_progress_callbacks, SessionProgress(lap))
+        elif "QualifyingPart" in session:
+            self.fire_callbacks(self.session_progress_callbacks, QualifyingSessionProgress(session["QualifyingPart"]))
+        else:
+            raise KeyError("Unknown SessionData format")

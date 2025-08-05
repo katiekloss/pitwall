@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from pitwall import PitWallClient
 from pitwall.adapters import CaptureAdapter
 from pitwall.events import SessionChange, Driver, SessionProgress, RaceControlMessage, TimingDatum, DriverStatusUpdate, \
-                           SectorTimingDatum, SegmentTimingDatum, StintChange
+                           SectorTimingDatum, SegmentTimingDatum, StintChange, QualifyingSessionProgress
 
 @dataclass
 class DriverSummary:
@@ -61,9 +61,13 @@ def main():
     print(f"Segment statuses: {statuses}")
 
 def on_session_change(session: SessionChange) -> None:
-    change_session(session)
+    print(f"Now watching {session.name}: {session.part} ({session.status})")
 
 def on_session_progress(progress: SessionProgress) -> None:
+    if isinstance(progress, QualifyingSessionProgress):
+        print(f"Qualifying session Q{progress.part}")
+        return
+    
     global lap
     lap = progress.lap
     print(f"Lap {lap}")
@@ -75,11 +79,9 @@ def on_race_control_update(updates: List[RaceControlMessage]) -> None:
     messages = ", ".join([x.message for x in updates])
     print(f"Race control: {messages}")
 
-    if messages == "CHEQUERED FLAG": # usually fired by itself
-        raise Cancel()
-
-def change_session(session: SessionChange):
-    print(f"Now watching {session.name}: {session.part} ({session.status})")
+    # bug: this gets fired between qualifying sessions too
+    # if messages == "CHEQUERED FLAG": # usually fired by itself
+    #     raise Cancel()
 
 def init_drivers(data: List[Driver]):
     for driver in data:
