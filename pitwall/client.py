@@ -202,7 +202,7 @@ class PitWallClient:
         self.fire_callbacks(self.race_control_update_callbacks, [parse_message(x) for x in messages])
     
     def parse_session_data(self, data: Dict[str, Any]) -> None:
-        if "Series" not in data:
+        if "Series" not in data or len(data["Series"]) == 0:
             # usually contains StatusSeries instead, which I don't know the meaning of
             return
         
