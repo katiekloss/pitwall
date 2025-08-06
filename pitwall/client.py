@@ -1,8 +1,7 @@
 from typing import Any, Dict, List
-import warnings
-from pitwall.adapters.abstract import PitWallAdapter, Update
 from collections.abc import Callable, Generator
 
+from pitwall.adapters.abstract import PitWallAdapter, Update
 from pitwall.events import Driver, SessionChange, SessionProgress, RaceControlMessage, \
     TimingDatum, DriverStatusUpdate, SectorTimingDatum, SegmentTimingDatum, SessionStatus, \
     StintChange, TrackStatus, Clock, QualifyingSessionProgress
@@ -22,6 +21,8 @@ class PitWallClient:
 
     def __init__(self, adapter : PitWallAdapter):
         self.adapter = adapter
+        self.adapter.on_message(self.update)
+
         self.update_callbacks = list()
         self.session_change_callbacks = list()
         self.driver_data_callbacks = list()
@@ -35,12 +36,7 @@ class PitWallClient:
         self.clock_callbacks = list()
 
     async def go(self) -> None:
-        async for update in self.adapter.run():
-            self.update(update)
-
-    def on_update(self, callback: Callable[[Update], None]):
-        warnings.warn("Subscribe to an actual event class or use an adapter instead of the full client", stacklevel=2)
-        self.update_callbacks.append(callback)
+        await self.adapter.run()
 
     def on_session_change(self, session_change_callback: Callable[[SessionChange], None]):
         self.session_change_callbacks.append(session_change_callback)
@@ -76,6 +72,7 @@ class PitWallClient:
         for callback in self.update_callbacks:
             callback(update)
 
+        # should this be an entirely separate event, rather than a magic string?
         if update.src == "init":
             self.fire_callbacks(self.driver_data_callbacks, self.parse_drivers(update.data["DriverList"]))
             self.fire_callbacks(self.session_change_callbacks, self.parse_session(update.data["SessionInfo"]))
@@ -134,6 +131,7 @@ class PitWallClient:
             driver = data["Lines"][driver_id]
 
             if "Sectors" not in driver:
+                print(driver)
                 # probably "GapToLeader" and/or "IntervalToPositionAhead" instead
                 continue
 

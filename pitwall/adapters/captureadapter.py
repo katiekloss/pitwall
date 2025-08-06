@@ -1,23 +1,23 @@
-from typing import AsyncIterator
 import orjson
 from pitwall.adapters.abstract import EOS, PitWallAdapter, Update
 
 class CaptureAdapter(PitWallAdapter):
     def __init__(self, filename):
+        super().__init__()
         self.filename = filename
 
-    async def run(self) -> AsyncIterator[Update]:
+    async def run(self) -> None:
         in_file = open(self.filename, "r")
         for line in in_file:
             try:
-                yield self.on_line(line)
+                self._message(self.parse_line(line))
             except EOS:
                 break
             except:
                 print(line) # TODO: remove this
                 raise
 
-    def on_line(self, line: str) -> Update:
+    def parse_line(self, line: str) -> Update:
         line = line.rstrip()
         if len(line) == 0:
             print("EOF")

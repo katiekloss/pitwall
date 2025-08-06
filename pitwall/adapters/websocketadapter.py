@@ -1,3 +1,4 @@
+import time
 from typing import AsyncIterator
 
 import pysignalr.client
@@ -5,16 +6,16 @@ import pysignalr.client
 from pitwall.adapters.abstract import PitWallAdapter, Update
 
 class WebsocketAdapter(PitWallAdapter):
-    client: pysignalr.client.ClientStream
+    client: pysignalr.client.SignalRClient
 
-    def __init__(self, websocketclient):
+    def __init__(self, websocketclient : pysignalr.client.SignalRClient):
         self.client = websocketclient
         self.client.on("feed", self.on_feed)
 
     async def on_feed(self, message):
         source = message[0]
         data = message[1]
-        print(f'{source}: {data}')
+        self._message(Update(source, data, time.time_ns()))
 
     async def on_subscribe(self, message):
         print('subscribed')

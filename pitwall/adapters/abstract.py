@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, AsyncIterator, Dict
+from typing import Any, Callable, Dict, List
 
 class EOS(Exception):
     """Raised when the client reaches the end of the given event stream"""
@@ -13,6 +13,7 @@ class Update:
     src: str
     "The event type"
     
+    # TODO: make this not Any
     data: Dict[str, Any]
     "The event payload"
 
@@ -20,6 +21,18 @@ class Update:
     "The time that the event was originally received, in Unix time"
 
 class PitWallAdapter(ABC):
+    message_callbacks: List[Callable[[Update], None]]
+
+    def __init__(self):
+        self.message_callbacks = list()
+    
     @abstractmethod
-    async def run(self) -> AsyncIterator[Update]:
+    async def run(self) -> None:
         ...
+    
+    def on_message(self, callback: Callable[[Update], None]) -> None:
+        self.message_callbacks.append(callback)
+
+    def _message(self, update: Update) -> None:
+        for callback in self.message_callbacks:
+            callback(update)
