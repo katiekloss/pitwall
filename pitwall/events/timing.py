@@ -31,6 +31,10 @@ class DriverStatusUpdate(TimingDatum):
     stopped: bool
 
 @dataclass
+class DriverPositionUpdate(TimingDatum):
+    position: int
+
+@dataclass
 class StintChange:
     driver_id: int
     stint_number: int

@@ -10,13 +10,14 @@ from dataclasses import dataclass
 from pitwall import PitWallClient
 from pitwall.adapters import CaptureAdapter
 from pitwall.events import SessionChange, Driver, SessionProgress, RaceControlMessage, TimingDatum, DriverStatusUpdate, \
-                           SectorTimingDatum, SegmentTimingDatum, StintChange, QualifyingSessionProgress
+                           SectorTimingDatum, SegmentTimingDatum, StintChange, QualifyingSessionProgress, DriverPositionUpdate
 
 @dataclass
 class DriverSummary:
     number: int
     broadcast_name: str
     max_stint: int
+    position: int
     location: Tuple[int, int]
 
     def __repr__(self):
@@ -48,6 +49,7 @@ def main():
     client.on_race_control_update(on_race_control_update)
     client.on_timing_datum(on_timing_data)
     client.on_driver_status_update(on_driver_status_update)
+    client.on_driver_position_update(on_driver_position_update)
     client.on_session_status(lambda s: print(f"Session is {s.status}"))
     client.on_stint_change(on_stint_change)
     client.on_track_status(lambda s: print(f"Track is {s.message} ({s.id})"))
@@ -59,6 +61,12 @@ def main():
         ...
         
     print(f"Segment statuses: {statuses}")
+
+    if args.driver is None: # otherwise all other drivers will be out of order
+        for i, driver in enumerate(sorted(drivers.values(), key=lambda d: d.position)):
+            if driver.position != i+1:
+                raise Exception(f"{driver} is out of order (should be at {i+1})")
+
 
 def on_session_change(session: SessionChange) -> None:
     print(f"Now watching {session.name}: {session.part} ({session.status})")
@@ -84,8 +92,11 @@ def on_race_control_update(updates: List[RaceControlMessage]) -> None:
     #     raise Cancel()
 
 def init_drivers(data: List[Driver]):
+    if len(drivers) > 0:
+        return
+    
     for driver in data:
-        drivers[driver.number] = DriverSummary(driver.number, driver.broadcast_name, 0, (0, 0))
+        drivers[driver.number] = DriverSummary(driver.number, driver.broadcast_name, 0, 99, (0, 0))
 
 def on_timing_data(data: TimingDatum) -> None:
     if args.driver is not None and args.driver != data.driver_id:
@@ -116,6 +127,40 @@ def on_driver_status_update(update: DriverStatusUpdate):
         return
     print(f"\t{drivers[update.driver_id]} stopped in sector {update.sector_id}")
 
+def on_driver_position_update(update: DriverPositionUpdate):
+    if args.driver is not None and args.driver != update.driver_id:
+        return
+    
+    driver = drivers[update.driver_id]
+    if driver.position == 99:
+        driver.position = update.position
+        return
+    
+    # TODO: refactor this when my brain has more capacity for mathing
+    if abs(driver.position - update.position) == 1:
+        try:
+            swap_with = next(filter(lambda d: d.position == update.position, drivers.values()))
+        except StopIteration:
+            print(f"Can't find driver at position {update.position}")
+            for d in sorted(drivers.values(), key=lambda d: d.position):
+                print(f"\t{d} in {d.position}")
+            raise
+
+        print(f"\t{driver} {"overtook" if driver.position > update.position else "lost position to"} {swap_with}")
+        swap_with.position = driver.position
+    elif driver.position > update.position: # overtake
+        losses = [x for x in drivers.values() if update.position <= x.position < driver.position]
+        for d in losses:
+            print(f"\t{driver} overtook {d}")
+            d.position += 1
+    elif driver.position < update.position:
+        gains = [x for x in drivers.values() if driver.position < x.position <= update.position]
+        for d in gains:
+            print(f"\t{driver} lost position to {d}")
+            d.position -= 1
+
+    driver.position = update.position
+
 def on_stint_change(stint: StintChange):
     if args.driver is not None and args.driver != stint.driver_id:
         return
@@ -137,7 +182,7 @@ if __name__ == "__main__":
     parser.add_argument("-i", "--input", required=True)
     parser.add_argument("-f", "--from", default=0)
     parser.add_argument("-t", "--to", default=0, type=int)
-    parser.add_argument("-d", "--driver")
+    parser.add_argument("-d", "--driver", type=int)
     args = parser.parse_args()
 
     try:

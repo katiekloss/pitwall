@@ -4,7 +4,7 @@ from collections.abc import Callable, Generator
 from pitwall.adapters.abstract import PitWallAdapter, Update
 from pitwall.events import Driver, SessionChange, SessionProgress, RaceControlMessage, \
     TimingDatum, DriverStatusUpdate, SectorTimingDatum, SegmentTimingDatum, SessionStatus, \
-    StintChange, TrackStatus, Clock, QualifyingSessionProgress
+    StintChange, TrackStatus, Clock, QualifyingSessionProgress, DriverPositionUpdate
 
 class PitWallClient:
     update_callbacks: List[Callable[[Update], None]]
@@ -14,6 +14,7 @@ class PitWallClient:
     race_control_update_callbacks: List[Callable[[List[RaceControlMessage]], None]]
     timing_data_callbacks: List[Callable[[TimingDatum], None]]
     driver_status_update_callbacks: List[Callable[[DriverStatusUpdate], None]]
+    driver_position_update_callbacks: List[Callable[[DriverPositionUpdate], None]]
     session_status_callbacks: List[Callable[[SessionStatus], None]]
     stint_change_callbacks: List[Callable[[StintChange], None]]
     track_status_callbacks: List[Callable[[TrackStatus], None]]
@@ -30,6 +31,7 @@ class PitWallClient:
         self.race_control_update_callbacks = list()
         self.timing_data_callbacks = list()
         self.driver_status_update_callbacks = list()
+        self.driver_position_update_callbacks = list()
         self.session_status_callbacks = list()
         self.stint_change_callbacks = list()
         self.track_status_callbacks = list()
@@ -55,6 +57,9 @@ class PitWallClient:
 
     def on_driver_status_update(self, callback: Callable[[DriverStatusUpdate], None]) -> None:
         self.driver_status_update_callbacks.append(callback)
+
+    def on_driver_position_update(self, callback: Callable[[DriverPositionUpdate], None]) -> None:
+        self.driver_position_update_callbacks.append(callback)
 
     def on_session_status(self, callback: Callable[[SessionStatus], None]) -> None:
         self.session_status_callbacks.append(callback)
@@ -130,8 +135,11 @@ class PitWallClient:
         for driver_id in data["Lines"].keys():
             driver = data["Lines"][driver_id]
 
-            if "Sectors" not in driver:
-                print(driver)
+            if "Position" in driver:
+                self.fire_callbacks(self.driver_position_update_callbacks, DriverPositionUpdate(int(driver_id), int(driver["Position"])))
+                return
+            elif "Sectors" not in driver:
+                # print(driver)
                 # probably "GapToLeader" and/or "IntervalToPositionAhead" instead
                 continue
 
@@ -179,7 +187,11 @@ class PitWallClient:
                         self.fire_callbacks(self.stint_change_callbacks, StintChange(int(driver_id), 1, stint_number["Compound"]))
                     elif "Compound" in driver_line["Stints"][stint_number]:
                         self.fire_callbacks(self.stint_change_callbacks, StintChange(int(driver_id), int(stint_number) + 1, driver_line["Stints"][stint_number]["Compound"]))
-
+            elif "GridPos" in driver_line: # format in the initial subscribe
+                self.fire_callbacks(self.driver_position_update_callbacks, DriverPositionUpdate(int(driver_id), int(driver_line["GridPos"])))
+            elif "Line" in driver_line: # initial subscribe, qualifying edition
+                self.fire_callbacks(self.driver_position_update_callbacks, DriverPositionUpdate(int(driver_id), driver_line["Line"]))
+                                    
     def parse_messages(self, messages: List[Dict[str, Any]] | Dict[str, Any]):
         def parse_message(x: Dict[str, Any]):
             message = RaceControlMessage(x["Category"], None, None, x["Message"], None, None)
