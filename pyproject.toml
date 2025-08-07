@@ -16,5 +16,3 @@ dev = [
     "ty>=0.0.1a16",
 ]
 
-[[tool.uv.index]]
-url = "https://pypi.svc.kat5.dev/index"
