@@ -9,6 +9,15 @@ class SegmentTimingDatum(TimingDatum):
     sector_id: int
     segment_id: int
     status: int
+    """
+    Driver's status flags in the segment. Some (guesses at) values:
+    - 2048: Complete
+    - 2049: Personal best + complete
+    - 2050: Unknown
+    - 2051: Overall best
+    - 2052: Crashed/stopped
+    - 2064: Safety car?
+    """
 
 @dataclass
 class SectorTimingDatum(TimingDatum):
@@ -27,8 +36,10 @@ class LapTimingDatum(TimingDatum):
 
 @dataclass
 class DriverStatusUpdate(TimingDatum):
-    sector_id: int
-    stopped: bool
+    sector_id: int | None
+    retired: bool | None
+    stopped: bool | None
+    status: int | None
 
 @dataclass
 class DriverPositionUpdate(TimingDatum):

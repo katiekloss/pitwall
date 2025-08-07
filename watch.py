@@ -11,7 +11,8 @@ from dataclasses import dataclass
 from pitwall import PitWallClient
 from pitwall.adapters import CaptureAdapter
 from pitwall.events import SessionChange, Driver, SessionProgress, RaceControlMessage, TimingDatum, DriverStatusUpdate, \
-                           SectorTimingDatum, SegmentTimingDatum, StintChange, QualifyingSessionProgress, DriverPositionUpdate
+                           SectorTimingDatum, SegmentTimingDatum, StintChange, QualifyingSessionProgress, DriverPositionUpdate, \
+                           LapTimingDatum
 
 @dataclass
 class DriverSummary:
@@ -25,7 +26,8 @@ class DriverSummary:
         return f"{self.broadcast_name} ({self.number})"
 
 drivers: Dict[int, DriverSummary] = dict()
-statuses = dict()
+segment_statuses = dict()
+driver_statuses = dict()
 lap = 1
 
 class Cancel(Exception):
@@ -68,7 +70,8 @@ def main():
     except Cancel:
         ...
         
-    print(f"Segment statuses: {statuses}")
+    print(f"Segment statuses: {segment_statuses}")
+    print(f"Driver statuses: {driver_statuses}")
 
     if args.driver is None: # otherwise all other drivers will be out of order
         for i, driver in enumerate(sorted(drivers.values(), key=lambda d: d.position)):
@@ -110,17 +113,21 @@ def init_drivers(data: List[Driver]):
 
 @driver_filter
 def on_timing_data(data: TimingDatum) -> None:
-    if isinstance(data, SegmentTimingDatum):
+    if isinstance(data, LapTimingDatum):
+        lap_time: LapTimingDatum = data
+        if lap_time.overall_fastest:
+            print(f"\t{drivers[lap_time.driver_id]} set fastest lap: {lap_time.time}")
+    elif isinstance(data, SegmentTimingDatum):
         segment: SegmentTimingDatum = data
-        if segment.status > 0 and segment.status != 2052: # I don't remember what this means, but it's written on a post-it in my office somewhere
-            last_location = drivers[segment.driver_id].location
-            if segment.sector_id == 0 and segment.segment_id <= 1:
-                drivers[segment.driver_id].location = (0, 0)
-            elif last_location[0] < segment.sector_id or last_location[1] < segment.segment_id:
-                drivers[segment.driver_id].location = (segment.sector_id, segment.segment_id)
+        # print(f"\t{drivers[segment.driver_id]}: {segment.sector_id}:{segment.segment_id} -> {segment.status}")
+        last_location = drivers[segment.driver_id].location
+        if segment.sector_id == 1 and segment.segment_id == 1:
+            drivers[segment.driver_id].location = (1, 1)
+        elif last_location[0] < segment.sector_id or last_location[1] < segment.segment_id:
+            drivers[segment.driver_id].location = (segment.sector_id, segment.segment_id)
 
-        if segment.status not in statuses:
-            statuses[segment.status] = f"{drivers[segment.driver_id]} at {lap}:{segment.sector_id}:{segment.segment_id}"
+        if segment.status not in segment_statuses:
+            segment_statuses[segment.status] = f"{drivers[segment.driver_id]} at {lap}:{segment.sector_id}:{segment.segment_id}"
     elif isinstance(data, SectorTimingDatum):
         sector: SectorTimingDatum = data
         if sector.overall_fastest:
@@ -128,7 +135,12 @@ def on_timing_data(data: TimingDatum) -> None:
 
 @driver_filter
 def on_driver_status_update(update: DriverStatusUpdate):
-    print(f"\t{drivers[update.driver_id]} stopped in sector {update.sector_id}")
+    if update.retired:
+        print(f"\t{drivers[update.driver_id]} retired!")
+    elif update.stopped:
+        print(f"\t{drivers[update.driver_id]} stopped{f" in sector {update.sector_id}" if update.sector_id is not None else ""}")
+    if update.status is not None and update.status not in driver_statuses:
+        driver_statuses[update.status] = f"{drivers[update.driver_id]} at {lap}:{update.sector_id}"
 
 @driver_filter
 def on_driver_position_update(update: DriverPositionUpdate):

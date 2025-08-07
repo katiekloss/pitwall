@@ -5,6 +5,7 @@ from pitwall.adapters.abstract import PitWallAdapter, Update
 from pitwall.events import Driver, SessionChange, SessionProgress, RaceControlMessage, \
     TimingDatum, DriverStatusUpdate, SectorTimingDatum, SegmentTimingDatum, SessionStatus, \
     StintChange, TrackStatus, Clock, QualifyingSessionProgress, DriverPositionUpdate
+from pitwall.events.timing import LapTimingDatum
 
 class PitWallClient:
 
@@ -129,13 +130,26 @@ class PitWallClient:
         return drivers
 
     def handle_timing_data(self, data) -> Generator[TimingDatum]:
+        """Handles TimingData, fires DriverPositionUpdate, DriverStatusUpdate, SectorTimingDatum, and SegmentTimingDatum"""
+
         for driver_id in data["Lines"].keys():
-            driver = data["Lines"][driver_id]
+            driver: Dict[str, Any] = data["Lines"][driver_id]
 
             if "Position" in driver:
                 self.fire_callbacks(self.driver_position_update_callbacks, DriverPositionUpdate(int(driver_id), int(driver["Position"])))
-                return
-            elif "Sectors" not in driver:
+                continue
+                
+            if "LastLapTime" in driver and "NumberOfLaps" in driver: # the latter can still be false; it won't include the lap time either
+                self.fire_callbacks(self.timing_data_callbacks, LapTimingDatum(int(driver_id),
+                                                                               driver["NumberOfLaps"],
+                                                                               driver["LastLapTime"].get("PersonalFastest", False),
+                                                                               driver["LastLapTime"].get("OverallFastest", False),
+                                                                               driver["LastLapTime"]["Value"])) # bug: str, not a float
+            
+            if "Sectors" not in driver:
+                if "Status" in driver or "Stopped" in driver:
+                    self.fire_callbacks(self.driver_status_update_callbacks, DriverStatusUpdate(int(driver_id), None, driver.get("Retired", None), driver.get("Stopped", None), driver["Status"]))
+                
                 # print(driver)
                 # probably "GapToLeader" and/or "IntervalToPositionAhead" instead
                 continue
@@ -149,7 +163,7 @@ class PitWallClient:
                 sector_id = int(sector_id)
 
                 if "Stopped" in sector:
-                    self.fire_callbacks(self.driver_status_update_callbacks, DriverStatusUpdate(int(driver_id), sector_id, True))
+                    self.fire_callbacks(self.driver_status_update_callbacks, DriverStatusUpdate(int(driver_id), sector_id + 1, False, True, None))
                     continue
                 
                 elif "PreviousValue" in sector:
@@ -162,7 +176,7 @@ class PitWallClient:
                     # print(f"\t{sector}")
                     if "Value" in sector and sector["Value"] != "":
                         # if not, I think it's JUST OverallFastest=false to clear someone's previous True?
-                        yield SectorTimingDatum(int(driver_id), sector_id, personal_fastest, overall_fastest, float(sector["Value"]))
+                        yield SectorTimingDatum(int(driver_id), sector_id + 1, personal_fastest, overall_fastest, float(sector["Value"]))
                     continue
                 
                 if isinstance(sector["Segments"], list): # same as the above one for driver[Sectors]
@@ -172,8 +186,7 @@ class PitWallClient:
                     segment = sector["Segments"][segment_id]
                     segment_id = int(segment_id)
                     status: int = segment["Status"]
-
-                    yield SegmentTimingDatum(int(driver_id), sector_id, segment_id, status)
+                    yield SegmentTimingDatum(int(driver_id), sector_id + 1, segment_id + 1, status)
 
     def parse_stints(self, data) -> None:
         for driver_id in data["Lines"].keys():
