@@ -181,13 +181,15 @@ class PitWallClient:
     def parse_stints(self, data) -> None:
         for driver_id in data["Lines"].keys():
             driver_line = data["Lines"][driver_id]
-            if "Stints" in driver_line and len(driver_line["Stints"]) > 0:
+
+            if "Stints" in driver_line:
                 for stint_number in driver_line["Stints"]:
                     if isinstance(stint_number, dict): # stint 0
                         self.fire_callbacks(self.stint_change_callbacks, StintChange(int(driver_id), 1, stint_number["Compound"]))
                     elif "Compound" in driver_line["Stints"][stint_number]:
                         self.fire_callbacks(self.stint_change_callbacks, StintChange(int(driver_id), int(stint_number) + 1, driver_line["Stints"][stint_number]["Compound"]))
-            elif "GridPos" in driver_line: # format in the initial subscribe
+            
+            if "GridPos" in driver_line: # format in the initial subscribe
                 self.fire_callbacks(self.driver_position_update_callbacks, DriverPositionUpdate(int(driver_id), int(driver_line["GridPos"])))
             elif "Line" in driver_line: # initial subscribe, qualifying edition
                 self.fire_callbacks(self.driver_position_update_callbacks, DriverPositionUpdate(int(driver_id), driver_line["Line"]))

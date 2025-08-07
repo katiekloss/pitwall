@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 import asyncio
 import sys
 import argparse
@@ -92,6 +93,8 @@ def on_race_control_update(updates: List[RaceControlMessage]) -> None:
     #     raise Cancel()
 
 def init_drivers(data: List[Driver]):
+    # don't wipe out the existing data if the websocket reconnects
+    # mid-session and re-fires the initial subscription data
     if len(drivers) > 0:
         return
     
