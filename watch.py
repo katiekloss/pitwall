@@ -26,7 +26,6 @@ class DriverSummary:
 
 drivers: Dict[int, DriverSummary] = dict()
 statuses = dict()
-sector_leaders = dict()
 lap = 1
 
 class Cancel(Exception):
@@ -119,11 +118,7 @@ def on_timing_data(data: TimingDatum) -> None:
     elif isinstance(data, SectorTimingDatum):
         sector: SectorTimingDatum = data
         if sector.overall_fastest:
-            if sector.sector_id not in sector_leaders or sector_leaders[sector.sector_id] != data.driver_id:
-                print(f"\t{drivers[data.driver_id]} overall fastest sector {sector.sector_id} ({sector.time})")
-                sector_leaders[sector.sector_id] = data.driver_id
-        #elif sector.personal_fastest:
-        #    print(f"\t{drivers[data.driver_id]} personal fastest sector {sector.sector_id} ({sector.time})")
+            print(f"\t{drivers[data.driver_id]} overall fastest sector {sector.sector_id} ({sector.time})")
 
 def on_driver_status_update(update: DriverStatusUpdate):
     if args.driver is not None and args.driver != update.driver_id:
