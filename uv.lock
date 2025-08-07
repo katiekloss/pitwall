@@ -80,37 +80,6 @@ wheels = [
 ]
 
 [[package]]
-name = "certifi"
-version = "2025.7.14"
-source = { registry = "https://pypi.svc.kat5.dev/index" }
-sdist = { url = "https://pypi.svc.kat5.dev/index/certifi/certifi-2025.7.14.tar.gz", hash = "sha256:8ea99dbdfaaf2ba2f9bac77b9249ef62ec5218e7c2b2e903378ed5fccf765995" }
-wheels = [
-    { url = "https://pypi.svc.kat5.dev/index/certifi/certifi-2025.7.14-py3-none-any.whl", hash = "sha256:6b31f564a415d79ee77df69d757bb49a5bb53bd9f756cbbe24394ffd6fc1f4b2" },
-]
-
-[[package]]
-name = "charset-normalizer"
-version = "3.4.2"
-source = { registry = "https://pypi.svc.kat5.dev/index" }
-sdist = { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.2.tar.gz", hash = "sha256:5baececa9ecba31eff645232d59845c07aa030f0c81ee70184a90d35099a0e63" }
-wheels = [
-    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.2-cp313-cp313-macosx_10_13_universal2.whl", hash = "sha256:926ca93accd5d36ccdabd803392ddc3e03e6d4cd1cf17deff3b989ab8e9dbcf0" },
-    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.2-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:eba9904b0f38a143592d9fc0e19e2df0fa2e41c3c3745554761c5f6447eedabf" },
-    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.2-cp313-cp313-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:3fddb7e2c84ac87ac3a947cb4e66d143ca5863ef48e4a5ecb83bd48619e4634e" },
-    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.2-cp313-cp313-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:98f862da73774290f251b9df8d11161b6cf25b599a66baf087c1ffe340e9bfd1" },
-    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.2-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:6c9379d65defcab82d07b2a9dfbfc2e95bc8fe0ebb1b176a3190230a3ef0e07c" },
-    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.2-cp313-cp313-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:e635b87f01ebc977342e2697d05b56632f5f879a4f15955dfe8cef2448b51691" },
-    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.2-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:1c95a1e2902a8b722868587c0e1184ad5c55631de5afc0eb96bc4b0d738092c0" },
-    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.2-cp313-cp313-musllinux_1_2_i686.whl", hash = "sha256:ef8de666d6179b009dce7bcb2ad4c4a779f113f12caf8dc77f0162c29d20490b" },
-    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.2-cp313-cp313-musllinux_1_2_ppc64le.whl", hash = "sha256:32fc0341d72e0f73f80acb0a2c94216bd704f4f0bce10aedea38f30502b271ff" },
-    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.2-cp313-cp313-musllinux_1_2_s390x.whl", hash = "sha256:289200a18fa698949d2b39c671c2cc7a24d44096784e76614899a7ccf2574b7b" },
-    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.2-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:4a476b06fbcf359ad25d34a057b7219281286ae2477cc5ff5e3f70a246971148" },
-    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.2-cp313-cp313-win32.whl", hash = "sha256:aaeeb6a479c7667fbe1099af9617c83aaca22182d6cf8c53966491a0f1b7ffb7" },
-    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.2-cp313-cp313-win_amd64.whl", hash = "sha256:aa6af9e7d59f9c12b33ae4e9450619cf2488e2bbe9b44030905877f0b2324980" },
-    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.2-py3-none-any.whl", hash = "sha256:7f56930ab0abd1c45cd15be65cc741c28b1c9a34876ce8c17a2fa107810c0af0" },
-]
-
-[[package]]
 name = "frozenlist"
 version = "1.7.0"
 source = { registry = "https://pypi.svc.kat5.dev/index" }
@@ -267,7 +236,6 @@ dependencies = [
     { name = "anyio" },
     { name = "orjson" },
     { name = "pysignalr" },
-    { name = "requests" },
 ]
 
 [package.dev-dependencies]
@@ -281,7 +249,6 @@ requires-dist = [
     { name = "anyio", specifier = ">=4.9.0" },
     { name = "orjson", specifier = ">=3.11.1" },
     { name = "pysignalr", specifier = ">=1.3.0" },
-    { name = "requests", specifier = ">=2.32.4" },
 ]
 
 [package.metadata.requires-dev]
@@ -347,21 +314,6 @@ wheels = [
 ]
 
 [[package]]
-name = "requests"
-version = "2.32.4"
-source = { registry = "https://pypi.svc.kat5.dev/index" }
-dependencies = [
-    { name = "certifi" },
-    { name = "charset-normalizer" },
-    { name = "idna" },
-    { name = "urllib3" },
-]
-sdist = { url = "https://pypi.svc.kat5.dev/index/requests/requests-2.32.4.tar.gz", hash = "sha256:27d0316682c8a29834d3264820024b62a36942083d52caf2f14c0591336d3422" }
-wheels = [
-    { url = "https://pypi.svc.kat5.dev/index/requests/requests-2.32.4-py3-none-any.whl", hash = "sha256:27babd3cda2a6d50b30443204ee89830707d396671944c998b5975b031ac2b2c" },
-]
-
-[[package]]
 name = "ruff"
 version = "0.12.7"
 source = { registry = "https://pypi.svc.kat5.dev/index" }
@@ -418,15 +370,6 @@ wheels = [
     { url = "https://pypi.svc.kat5.dev/index/ty/ty-0.0.1a16-py3-none-win32.whl", hash = "sha256:4113a176a8343196d73145668460873d26ccef8766ff4e5287eec2622ce8754d" },
     { url = "https://pypi.svc.kat5.dev/index/ty/ty-0.0.1a16-py3-none-win_amd64.whl", hash = "sha256:508ba4c50bc88f1a7c730d40f28d6c679696ee824bc09630c7c6763911de862a" },
     { url = "https://pypi.svc.kat5.dev/index/ty/ty-0.0.1a16-py3-none-win_arm64.whl", hash = "sha256:36f53e430b5e0231d6b6672160c981eaf7f9390162380bcd1096941b2c746b5d" },
-]
-
-[[package]]
-name = "urllib3"
-version = "2.5.0"
-source = { registry = "https://pypi.svc.kat5.dev/index" }
-sdist = { url = "https://pypi.svc.kat5.dev/index/urllib3/urllib3-2.5.0.tar.gz", hash = "sha256:3fc47733c7e419d4bc3f6b3dc2b4f890bb743906a30d56ba4a5bfa4bbff92760" }
-wheels = [
-    { url = "https://pypi.svc.kat5.dev/index/urllib3/urllib3-2.5.0-py3-none-any.whl", hash = "sha256:e6b01673c0fa6a13e374b50871808eb3bf7046c4b125b216f6bf1cc604cff0dc" },
 ]
 
 [[package]]
