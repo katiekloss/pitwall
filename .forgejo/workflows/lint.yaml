@@ -1,0 +1,12 @@
+on: [push]
+jobs:
+  lint:
+    runs-on: docker
+    steps:
+      - uses: actions/checkout@v4
+      - uses: https://github.com/astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run:
+          uvx ruff check
+          uvx ty check
