@@ -48,7 +48,7 @@ async def on_feed(update):
     if source == "SessionStatus" and update[1]["Status"] == "Finalised":
         if args.continuous:
             print("Session complete")
-            out_file.close()
+            out_file.close() # ty: ignore[possibly-unbound-attribute]
             out_file = None
         else:
             raise Cancel()

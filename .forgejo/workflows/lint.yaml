@@ -7,6 +7,5 @@ jobs:
       - uses: https://github.com/astral-sh/setup-uv@v6
         with:
           enable-cache: true
-      - run:
-          uvx ruff check
-          uvx ty check
+      - run: uvx --no-progress ruff check
+      - run: uvx --no-progress ty check

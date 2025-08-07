@@ -1,5 +1,4 @@
 import time
-from typing import AsyncIterator
 
 import pysignalr.client
 

@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import List
 
 @dataclass
 class SessionChange:
@@ -19,11 +18,11 @@ class QualifyingSessionProgress:
 @dataclass
 class RaceControlMessage:
     category: str
-    flag: str
-    scope: str
+    flag: str | None
+    scope: str | None
     message: str
-    lap: int
-    sector: int
+    lap: int | None
+    sector: int | None
 
 @dataclass
 class SessionStatus:
