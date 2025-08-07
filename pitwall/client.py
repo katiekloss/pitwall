@@ -196,16 +196,12 @@ class PitWallClient:
                                     
     def parse_messages(self, messages: List[Dict[str, Any]] | Dict[str, Any]):
         def parse_message(x: Dict[str, Any]):
-            message = RaceControlMessage(x["Category"], None, None, x["Message"], None, None)
-            if "Lap" in x:
-                message.lap = x["Lap"]
-            if "Sector" in x:
-                message.sector = x["Sector"]
-            if "Flag" in x:
-                message.flag = x["Flag"]
-            if "Scope" in x:
-                message.scope = x["Scope"]
-            return message
+            return RaceControlMessage(x["Category"],
+                                      x.get("Flag", None),
+                                      x.get("Scope", None),
+                                      x["Message"],
+                                      x.get("Lap", None),
+                                      x.get("Sector", None))
         
         if isinstance(messages, dict):
             # after initial subscribe, it becomes a dict keyed by a monotonic int sequence
