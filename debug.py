@@ -10,7 +10,7 @@ from pysignalr.client import SignalRClient
 
 async def main():
     if sys.argv[1] == "--live":
-        adapter = WebsocketAdapter(SignalRClient("wss://livetiming.formula1.com/signalrcore"))
+        adapter = WebsocketAdapter(SignalRClient("wss://livetiming.formula1.com/signalrcore", retry_count=5))
     elif sys.argv[1] == "--capture":
         adapter = CaptureAdapter(sys.argv[2])
 
@@ -19,4 +19,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-

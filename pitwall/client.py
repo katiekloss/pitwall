@@ -7,7 +7,7 @@ from pitwall.events import Driver, SessionChange, SessionProgress, RaceControlMe
     StintChange, TrackStatus, Clock, QualifyingSessionProgress, DriverPositionUpdate
 
 class PitWallClient:
-    update_callbacks: List[Callable[[Update], None]]
+
     session_change_callbacks: List[Callable[[SessionChange], None]]
     driver_data_callbacks: List[Callable[[List[Driver]], None]]
     session_progress_callbacks: List[Callable[[SessionProgress], None]]
@@ -74,9 +74,6 @@ class PitWallClient:
         self.clock_callbacks.append(callback)
 
     def update(self, update: Update):
-        for callback in self.update_callbacks:
-            callback(update)
-
         # should this be an entirely separate event, rather than a magic string?
         if update.src == "init":
             self.fire_callbacks(self.driver_data_callbacks, self.parse_drivers(update.data["DriverList"]))
