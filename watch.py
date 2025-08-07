@@ -31,6 +31,14 @@ lap = 1
 class Cancel(Exception):
     ...
 
+def driver_filter(func):
+    def wrapper(obj):
+        if args.driver is not None and obj.driver_id != args.driver:
+            return
+        
+        func(obj)
+    return wrapper
+
 def main():
     for i in range(20):
         if os.path.exists(args.input):
@@ -100,10 +108,8 @@ def init_drivers(data: List[Driver]):
     for driver in data:
         drivers[driver.number] = DriverSummary(driver.number, driver.broadcast_name, 0, 99, (0, 0))
 
+@driver_filter
 def on_timing_data(data: TimingDatum) -> None:
-    if args.driver is not None and args.driver != data.driver_id:
-        return
-    
     if isinstance(data, SegmentTimingDatum):
         segment: SegmentTimingDatum = data
         if segment.status > 0 and segment.status != 2052: # I don't remember what this means, but it's written on a post-it in my office somewhere
@@ -120,20 +126,21 @@ def on_timing_data(data: TimingDatum) -> None:
         if sector.overall_fastest:
             print(f"\t{drivers[data.driver_id]} overall fastest sector {sector.sector_id} ({sector.time})")
 
+@driver_filter
 def on_driver_status_update(update: DriverStatusUpdate):
-    if args.driver is not None and args.driver != update.driver_id:
-        return
     print(f"\t{drivers[update.driver_id]} stopped in sector {update.sector_id}")
 
+@driver_filter
 def on_driver_position_update(update: DriverPositionUpdate):
-    if args.driver is not None and args.driver != update.driver_id:
-        return
-    
     driver = drivers[update.driver_id]
     if driver.position == 99:
         driver.position = update.position
         return
     
+    if args.driver is not None:
+        print(f"{driver} took position {update.position}")
+        return
+
     # TODO: refactor this when my brain has more capacity for mathing
     if abs(driver.position - update.position) == 1:
         try:
@@ -159,10 +166,9 @@ def on_driver_position_update(update: DriverPositionUpdate):
 
     driver.position = update.position
 
+@driver_filter
 def on_stint_change(stint: StintChange):
-    if args.driver is not None and args.driver != stint.driver_id:
-        return
-    elif stint.driver_id not in drivers:
+    if stint.driver_id not in drivers:
         # idk that this is necessary anymore
         print(f"Stint data for unknown driver {stint.driver_id}")
         return
