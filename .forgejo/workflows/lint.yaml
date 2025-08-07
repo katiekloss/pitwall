@@ -1,4 +1,6 @@
 on: [push]
+env:
+  UV_NO_PROGRESS: 1
 jobs:
   lint:
     runs-on: docker
@@ -8,5 +10,6 @@ jobs:
       - uses: https://github.com/astral-sh/setup-uv@v6
         with:
           enable-cache: true
-      - run: uvx --no-progress ruff check
-      - run: uvx --no-progress ty check
+      - run: uv sync
+      - run: uvx ruff check
+      - run: uvx ty check
