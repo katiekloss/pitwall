@@ -109,7 +109,7 @@ def init_drivers(data: List[Driver]):
         return
     
     for driver in data:
-        drivers[driver.number] = DriverSummary(driver.number, driver.broadcast_name, 0, 99, (0, 0))
+        drivers[driver.number] = DriverSummary(driver.number, driver.broadcast_name, 0, 99, (1, 1))
 
 @driver_filter
 def on_timing_data(data: TimingDatum) -> None:
