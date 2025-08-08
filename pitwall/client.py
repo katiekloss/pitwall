@@ -93,8 +93,7 @@ class PitWallClient:
         elif update.src == "RaceControlMessages":
             self.parse_messages(update.data["Messages"])
         elif update.src == "TimingData":
-            for datum in self.handle_timing_data(update.data):
-                self.fire_callbacks(self.timing_data_callbacks, datum)
+            self.handle_timing_data(update.data)
         elif update.src == "SessionStatus":
             self.fire_callbacks(self.session_status_callbacks, SessionStatus(update.data["Status"]))
         elif update.src == "TimingAppData" or update.src == "TimingStats":
@@ -129,8 +128,8 @@ class PitWallClient:
         
         return drivers
 
-    def handle_timing_data(self, data) -> Generator[TimingDatum]:
-        """Handles TimingData, fires DriverPositionUpdate, DriverStatusUpdate, SectorTimingDatum, and SegmentTimingDatum"""
+    def handle_timing_data(self, data) -> None:
+        """Handles TimingData, fires DriverPositionUpdate, DriverStatusUpdate, SectorTimingDatum, SegmentTimingDatum, and LapTimingDatum"""
 
         for driver_id in data["Lines"].keys():
             driver: Dict[str, Any] = data["Lines"][driver_id]
@@ -176,7 +175,11 @@ class PitWallClient:
                     # print(f"\t{sector}")
                     if "Value" in sector and sector["Value"] != "":
                         # if not, I think it's JUST OverallFastest=false to clear someone's previous True?
-                        yield SectorTimingDatum(int(driver_id), sector_id + 1, personal_fastest, overall_fastest, float(sector["Value"]))
+                        self.fire_callbacks(self.timing_data_callbacks, SectorTimingDatum(int(driver_id),
+                                                                                          sector_id + 1,
+                                                                                          personal_fastest,
+                                                                                          overall_fastest,
+                                                                                          float(sector["Value"])))
                     continue
                 
                 if isinstance(sector["Segments"], list): # same as the above one for driver[Sectors]
@@ -186,7 +189,7 @@ class PitWallClient:
                     segment = sector["Segments"][segment_id]
                     segment_id = int(segment_id)
                     status: int = segment["Status"]
-                    yield SegmentTimingDatum(int(driver_id), sector_id + 1, segment_id + 1, status)
+                    self.fire_callbacks(self.timing_data_callbacks, SegmentTimingDatum(int(driver_id), sector_id + 1, segment_id + 1, status))
 
     def parse_stints(self, data) -> None:
         for driver_id in data["Lines"].keys():
