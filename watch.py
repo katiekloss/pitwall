@@ -12,7 +12,7 @@ from pitwall import PitWallClient
 from pitwall.adapters import CaptureAdapter
 from pitwall.events import SessionChange, Driver, SessionProgress, RaceControlMessage, TimingDatum, DriverStatusUpdate, \
                            SectorTimingDatum, SegmentTimingDatum, StintChange, QualifyingSessionProgress, DriverPositionUpdate, \
-                           LapTimingDatum
+                           LapTimingDatum, SessionStatus, SessionConfig
 
 @dataclass
 class DriverSummary:
@@ -29,6 +29,7 @@ drivers: Dict[int, DriverSummary] = dict()
 segment_statuses = dict()
 driver_statuses = dict()
 lap = 1
+track_layout = {1: 0, 2: 0, 3: 0}
 
 class Cancel(Exception):
     ...
@@ -60,11 +61,11 @@ def main():
     client.on_timing_datum(on_timing_data)
     client.on_driver_status_update(on_driver_status_update)
     client.on_driver_position_update(on_driver_position_update)
-    client.on_session_status(lambda s: print(f"Session is {s.status}"))
+    client.on_session_status(on_session_status)
     client.on_stint_change(on_stint_change)
     client.on_track_status(lambda s: print(f"Track is {s.message} ({s.id})"))
     client.on_clock(lambda c: print(f"Race time is {c.remaining}"))
-
+    client.on_session_config(on_session_config)
     try:
         asyncio.run(client.go())
     except Cancel:
@@ -78,6 +79,14 @@ def main():
             if driver.position != i+1:
                 raise Exception(f"{driver} is out of order (should be at {i+1})")
 
+def on_session_status(status: SessionStatus):
+    print(f"Session is {status.status}")
+        
+def on_session_config(config: SessionConfig):
+    print("Track config:")
+    track_layout = config.layout
+    for i in config.layout:
+        print(f"\tSector {i}: {config.layout[i]} segments")
 
 def on_session_change(session: SessionChange) -> None:
     print(f"Now watching {session.name}: {session.part} ({session.status})")
@@ -128,6 +137,7 @@ def on_timing_data(data: TimingDatum) -> None:
 
         if segment.status not in segment_statuses:
             segment_statuses[segment.status] = f"{drivers[segment.driver_id]} at {lap}:{segment.sector_id}:{segment.segment_id}"
+
     elif isinstance(data, SectorTimingDatum):
         sector: SectorTimingDatum = data
         if sector.overall_fastest:

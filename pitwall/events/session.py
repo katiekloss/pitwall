@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Dict
 
 @dataclass
 class SessionChange:
@@ -36,3 +37,7 @@ class TrackStatus:
 @dataclass
 class Clock:
     remaining: str
+
+@dataclass
+class SessionConfig:
+    layout: Dict[int, int]

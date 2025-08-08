@@ -1,10 +1,11 @@
 from typing import Any, Dict, List
-from collections.abc import Callable, Generator
+from collections.abc import Callable
 
 from pitwall.adapters.abstract import PitWallAdapter, Update
 from pitwall.events import Driver, SessionChange, SessionProgress, RaceControlMessage, \
     TimingDatum, DriverStatusUpdate, SectorTimingDatum, SegmentTimingDatum, SessionStatus, \
-    StintChange, TrackStatus, Clock, QualifyingSessionProgress, DriverPositionUpdate
+    StintChange, TrackStatus, Clock, QualifyingSessionProgress, DriverPositionUpdate, \
+    SessionConfig
 from pitwall.events.timing import LapTimingDatum
 
 class PitWallClient:
@@ -20,6 +21,7 @@ class PitWallClient:
     stint_change_callbacks: List[Callable[[StintChange], None]]
     track_status_callbacks: List[Callable[[TrackStatus], None]]
     clock_callbacks: List[Callable[[Clock], None]]
+    session_config_callbacks: List[Callable[[SessionConfig], None]]
 
     def __init__(self, adapter : PitWallAdapter):
         self.adapter = adapter
@@ -37,6 +39,7 @@ class PitWallClient:
         self.stint_change_callbacks = list()
         self.track_status_callbacks = list()
         self.clock_callbacks = list()
+        self.session_config_callbacks = list()
 
     async def go(self) -> None:
         await self.adapter.run()
@@ -74,6 +77,9 @@ class PitWallClient:
     def on_clock(self, callback: Callable[[Clock], None]) -> None:
         self.clock_callbacks.append(callback)
 
+    def on_session_config(self, callback: Callable[[SessionConfig], None]) -> None:
+        self.session_config_callbacks.append(callback)
+
     def update(self, update: Update):
         # should this be an entirely separate event, rather than a magic string?
         if update.src == "init":
@@ -84,6 +90,7 @@ class PitWallClient:
             # sometimes it's after the initial subscribe, but in the init format
             if "RaceControlMessages" in update.data:
                 self.parse_messages(update.data["RaceControlMessages"]["Messages"])
+            self.parse_track_config(update.data["TimingData"])
         elif update.src == "SessionInfo":
             self.fire_callbacks(self.session_change_callbacks, self.parse_session(update.data))
         elif update.src == "DriverList":
@@ -240,3 +247,10 @@ class PitWallClient:
             self.fire_callbacks(self.session_progress_callbacks, QualifyingSessionProgress(session["QualifyingPart"]))
         else:
             raise KeyError("Unknown SessionData format")
+    
+    def parse_track_config(self, timing_data: Dict[str, Any]):
+        sample = next(iter(timing_data["Lines"].values()))
+        layout = {1: len(sample["Sectors"][0]["Segments"]),
+                  2: len(sample["Sectors"][1]["Segments"]),
+                  3: len(sample["Sectors"][2]["Segments"])}
+        self.fire_callbacks(self.session_config_callbacks, SessionConfig(layout))
