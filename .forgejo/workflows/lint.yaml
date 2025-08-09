@@ -10,6 +10,7 @@ jobs:
       - uses: https://github.com/astral-sh/setup-uv@v6
         with:
           enable-cache: true
+          prune-cache: false
       - run: uv sync --all-groups
         id: uv
       - run: uvx ruff check --extend-select PT
