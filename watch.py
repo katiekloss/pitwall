@@ -13,6 +13,7 @@ from pitwall.adapters import CaptureAdapter
 from pitwall.events import SessionChange, Driver, SessionProgress, RaceControlMessage, TimingDatum, DriverStatusUpdate, \
                            SectorTimingDatum, SegmentTimingDatum, StintChange, QualifyingSessionProgress, DriverPositionUpdate, \
                            LapTimingDatum, SessionStatus, SessionConfig
+from pitwall.util import TimingTower
 
 @dataclass
 class DriverSummary:
@@ -60,12 +61,14 @@ def main():
     client.on_race_control_update(on_race_control_update)
     client.on_timing_datum(on_timing_data)
     client.on_driver_status_update(on_driver_status_update)
-    client.on_driver_position_update(on_driver_position_update)
     client.on_session_status(on_session_status)
     client.on_stint_change(on_stint_change)
     client.on_track_status(lambda s: print(f"Track is {s.message} ({s.id})"))
     client.on_clock(lambda c: print(f"Race time is {c.remaining}"))
     client.on_session_config(on_session_config)
+
+    timing_tower = TimingTower(client)
+
     try:
         asyncio.run(client.go())
     except Cancel:
@@ -73,18 +76,15 @@ def main():
         
     print(f"Segment statuses: {segment_statuses}")
     print(f"Driver statuses: {driver_statuses}")
-
-    if args.driver is None: # otherwise all other drivers will be out of order
-        for i, driver in enumerate(sorted(drivers.values(), key=lambda d: d.position)):
-            if driver.position != i+1:
-                raise Exception(f"{driver} is out of order (should be at {i+1})")
+    for driver in sorted(timing_tower.drivers.values(), key=lambda d: d.position):
+        print(f"{driver.position}: {drivers[driver.driver_number]}")
 
 def on_session_status(status: SessionStatus):
     print(f"Session is {status.status}")
         
 def on_session_config(config: SessionConfig):
     global track_layout
-    
+
     print("Track config:")
     track_layout = config.layout
     for i in config.layout:
@@ -153,42 +153,6 @@ def on_driver_status_update(update: DriverStatusUpdate):
         print(f"\t{drivers[update.driver_id]} stopped{f" in sector {update.sector_id}" if update.sector_id is not None else ""}")
     if update.status is not None and update.status not in driver_statuses:
         driver_statuses[update.status] = f"{drivers[update.driver_id]} at {lap}:{update.sector_id}"
-
-@driver_filter
-def on_driver_position_update(update: DriverPositionUpdate):
-    driver = drivers[update.driver_id]
-    if driver.position == 99:
-        driver.position = update.position
-        return
-    
-    if args.driver is not None:
-        print(f"{driver} took position {update.position}")
-        return
-
-    # TODO: refactor this when my brain has more capacity for mathing
-    if abs(driver.position - update.position) == 1:
-        try:
-            swap_with = next(filter(lambda d: d.position == update.position, drivers.values()))
-        except StopIteration:
-            print(f"Can't find driver at position {update.position}")
-            for d in sorted(drivers.values(), key=lambda d: d.position):
-                print(f"\t{d} in {d.position}")
-            raise
-
-        print(f"\t{driver} {"overtook" if driver.position > update.position else "lost position to"} {swap_with}")
-        swap_with.position = driver.position
-    elif driver.position > update.position: # overtake
-        losses = [x for x in drivers.values() if update.position <= x.position < driver.position]
-        for d in losses:
-            print(f"\t{driver} overtook {d}")
-            d.position += 1
-    elif driver.position < update.position:
-        gains = [x for x in drivers.values() if driver.position < x.position <= update.position]
-        for d in gains:
-            print(f"\t{driver} lost position to {d}")
-            d.position -= 1
-
-    driver.position = update.position
 
 @driver_filter
 def on_stint_change(stint: StintChange):

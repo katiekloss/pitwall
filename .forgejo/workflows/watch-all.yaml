@@ -8,5 +8,6 @@ jobs:
       - uses: https://github.com/astral-sh/setup-uv@v6
         with:
           enable-cache: true
+          prune-cache: false
       - name: Run watch.py
         run: find data/ -type f | xargs -I % uv run --frozen --no-progress watch.py -i %
