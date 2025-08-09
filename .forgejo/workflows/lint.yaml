@@ -2,7 +2,7 @@ on: [push]
 env:
   UV_NO_PROGRESS: 1
 jobs:
-  lint:
+  lint-and-test:
     runs-on: docker
     steps:
       - uses: actions/checkout@v4
@@ -10,6 +10,11 @@ jobs:
       - uses: https://github.com/astral-sh/setup-uv@v6
         with:
           enable-cache: true
-      - run: uv sync
-      - run: uvx ruff check
+      - run: uv sync --all-groups
+        id: uv
+      - run: uvx ruff check --extend-select PT
+        if: ${{ always() && steps.uv.conclusion == 'success' }}
       - run: uvx ty check
+        if: ${{ always() && steps.uv.conclusion == 'success' }}
+      - run: uv run pytest
+        if: ${{ always() && steps.uv.conclusion == 'success' }}

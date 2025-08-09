@@ -1,6 +1,6 @@
 on: [push]
 jobs:
-  test-watch-py:
+  watch-all:
     runs-on: docker
     steps:
       - uses: actions/checkout@v4

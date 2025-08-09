@@ -80,6 +80,36 @@ wheels = [
 ]
 
 [[package]]
+name = "colorama"
+version = "0.4.6"
+source = { registry = "https://pypi.svc.kat5.dev/index" }
+sdist = { url = "https://pypi.svc.kat5.dev/index/colorama/colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44" }
+wheels = [
+    { url = "https://pypi.svc.kat5.dev/index/colorama/colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6" },
+]
+
+[[package]]
+name = "flake8-plugin-utils"
+version = "1.3.3"
+source = { registry = "https://pypi.svc.kat5.dev/index" }
+sdist = { url = "https://pypi.svc.kat5.dev/index/flake8-plugin-utils/flake8-plugin-utils-1.3.3.tar.gz", hash = "sha256:39f6f338d038b301c6fd344b06f2e81e382b68fa03c0560dff0d9b1791a11a2c" }
+wheels = [
+    { url = "https://pypi.svc.kat5.dev/index/flake8-plugin-utils/flake8_plugin_utils-1.3.3-py3-none-any.whl", hash = "sha256:e4848c57d9d50f19100c2d75fa794b72df068666a9041b4b0409be923356a3ed" },
+]
+
+[[package]]
+name = "flake8-pytest-style"
+version = "2.1.0"
+source = { registry = "https://pypi.svc.kat5.dev/index" }
+dependencies = [
+    { name = "flake8-plugin-utils" },
+]
+sdist = { url = "https://pypi.svc.kat5.dev/index/flake8-pytest-style/flake8_pytest_style-2.1.0.tar.gz", hash = "sha256:fee6befdb5915d600ef24e38d48a077d0dcffb032945ae0169486e7ff8a1079a" }
+wheels = [
+    { url = "https://pypi.svc.kat5.dev/index/flake8-pytest-style/flake8_pytest_style-2.1.0-py3-none-any.whl", hash = "sha256:a0d6dddcd533bfc13f19b8445907be0330c5e6ccf7090bcd9d5fa5a0b1b65e71" },
+]
+
+[[package]]
 name = "frozenlist"
 version = "1.7.0"
 source = { registry = "https://pypi.svc.kat5.dev/index" }
@@ -129,6 +159,15 @@ source = { registry = "https://pypi.svc.kat5.dev/index" }
 sdist = { url = "https://pypi.svc.kat5.dev/index/idna/idna-3.10.tar.gz", hash = "sha256:12f65c9b470abda6dc35cf8e63cc574b1c52b11df2c86030af0ac09b01b13ea9" }
 wheels = [
     { url = "https://pypi.svc.kat5.dev/index/idna/idna-3.10-py3-none-any.whl", hash = "sha256:946d195a0d259cbba61165e88e65941f16e9b36ea6ddb97f00452bae8b1287d3" },
+]
+
+[[package]]
+name = "iniconfig"
+version = "2.1.0"
+source = { registry = "https://pypi.svc.kat5.dev/index" }
+sdist = { url = "https://pypi.svc.kat5.dev/index/iniconfig/iniconfig-2.1.0.tar.gz", hash = "sha256:3abbd2e30b36733fee78f9c7f7308f2d0050e88f0087fd25c2645f63c773e1c7" }
+wheels = [
+    { url = "https://pypi.svc.kat5.dev/index/iniconfig/iniconfig-2.1.0-py3-none-any.whl", hash = "sha256:9deba5723312380e77435581c6bf4935c94cbfab9b1ed33ef8d238ea168eb760" },
 ]
 
 [[package]]
@@ -229,6 +268,15 @@ wheels = [
 ]
 
 [[package]]
+name = "packaging"
+version = "25.0"
+source = { registry = "https://pypi.svc.kat5.dev/index" }
+sdist = { url = "https://pypi.svc.kat5.dev/index/packaging/packaging-25.0.tar.gz", hash = "sha256:d443872c98d677bf60f6a1f2f8c1cb748e8fe762d2bf9d3148b5599295b0fc4f" }
+wheels = [
+    { url = "https://pypi.svc.kat5.dev/index/packaging/packaging-25.0-py3-none-any.whl", hash = "sha256:29572ef2b1f17581046b3a2227d5c611fb25ec70ca1ba8554b24b0e69331a484" },
+]
+
+[[package]]
 name = "pitwall"
 version = "0.1.0"
 source = { virtual = "." }
@@ -240,6 +288,9 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "flake8-pytest-style" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
     { name = "ruff" },
     { name = "ty" },
 ]
@@ -253,8 +304,20 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "flake8-pytest-style", specifier = ">=2.1.0" },
+    { name = "pytest", specifier = ">=8.4.1" },
+    { name = "pytest-asyncio", specifier = ">=1.1.0" },
     { name = "ruff", specifier = ">=0.12.7" },
     { name = "ty", specifier = ">=0.0.1a16" },
+]
+
+[[package]]
+name = "pluggy"
+version = "1.6.0"
+source = { registry = "https://pypi.svc.kat5.dev/index" }
+sdist = { url = "https://pypi.svc.kat5.dev/index/pluggy/pluggy-1.6.0.tar.gz", hash = "sha256:7dcc130b76258d33b90f61b658791dede3486c3e6bfb003ee5c9bfb396dd22f3" }
+wheels = [
+    { url = "https://pypi.svc.kat5.dev/index/pluggy/pluggy-1.6.0-py3-none-any.whl", hash = "sha256:e920276dd6813095e9377c0bc5566d94c932c33b27a3e3945d8389c374dd4746" },
 ]
 
 [[package]]
@@ -299,6 +362,15 @@ wheels = [
 ]
 
 [[package]]
+name = "pygments"
+version = "2.19.2"
+source = { registry = "https://pypi.svc.kat5.dev/index" }
+sdist = { url = "https://pypi.svc.kat5.dev/index/pygments/pygments-2.19.2.tar.gz", hash = "sha256:636cb2477cec7f8952536970bc533bc43743542f70392ae026374600add5b887" }
+wheels = [
+    { url = "https://pypi.svc.kat5.dev/index/pygments/pygments-2.19.2-py3-none-any.whl", hash = "sha256:86540386c03d588bb81d44bc3928634ff26449851e99741617ecb9037ee5ec0b" },
+]
+
+[[package]]
 name = "pysignalr"
 version = "1.3.0"
 source = { registry = "https://pypi.svc.kat5.dev/index" }
@@ -311,6 +383,34 @@ dependencies = [
 sdist = { url = "https://pypi.svc.kat5.dev/index/pysignalr/pysignalr-1.3.0.tar.gz", hash = "sha256:ca2e4372f213d82148fa2f060f0fefd096f1f66fca1107ac05e76ec6abd4cf52" }
 wheels = [
     { url = "https://pypi.svc.kat5.dev/index/pysignalr/pysignalr-1.3.0-py3-none-any.whl", hash = "sha256:423c91b0d1dc8387f37118ac2d1dc87ed6b9e01993a04612eab8452193f40344" },
+]
+
+[[package]]
+name = "pytest"
+version = "8.4.1"
+source = { registry = "https://pypi.svc.kat5.dev/index" }
+dependencies = [
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+    { name = "iniconfig" },
+    { name = "packaging" },
+    { name = "pluggy" },
+    { name = "pygments" },
+]
+sdist = { url = "https://pypi.svc.kat5.dev/index/pytest/pytest-8.4.1.tar.gz", hash = "sha256:7c67fd69174877359ed9371ec3af8a3d2b04741818c51e5e99cc1742251fa93c" }
+wheels = [
+    { url = "https://pypi.svc.kat5.dev/index/pytest/pytest-8.4.1-py3-none-any.whl", hash = "sha256:539c70ba6fcead8e78eebbf1115e8b589e7565830d7d006a8723f19ac8a0afb7" },
+]
+
+[[package]]
+name = "pytest-asyncio"
+version = "1.1.0"
+source = { registry = "https://pypi.svc.kat5.dev/index" }
+dependencies = [
+    { name = "pytest" },
+]
+sdist = { url = "https://pypi.svc.kat5.dev/index/pytest-asyncio/pytest_asyncio-1.1.0.tar.gz", hash = "sha256:796aa822981e01b68c12e4827b8697108f7205020f24b5793b3c41555dab68ea" }
+wheels = [
+    { url = "https://pypi.svc.kat5.dev/index/pytest-asyncio/pytest_asyncio-1.1.0-py3-none-any.whl", hash = "sha256:5fe2d69607b0bd75c656d1211f969cadba035030156745ee09e7d71740e58ecf" },
 ]
 
 [[package]]

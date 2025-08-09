@@ -83,6 +83,8 @@ def on_session_status(status: SessionStatus):
     print(f"Session is {status.status}")
         
 def on_session_config(config: SessionConfig):
+    global track_layout
+    
     print("Track config:")
     track_layout = config.layout
     for i in config.layout:

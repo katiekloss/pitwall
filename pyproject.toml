@@ -11,6 +11,9 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "flake8-pytest-style>=2.1.0",
+    "pytest>=8.4.1",
+    "pytest-asyncio>=1.1.0",
     "ruff>=0.12.7",
     "ty>=0.0.1a16",
 ]
