@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from pitwall import PitWallClient
 from pitwall.adapters import CaptureAdapter
 from pitwall.events import SessionChange, Driver, SessionProgress, RaceControlMessage, TimingDatum, DriverStatusUpdate, \
-                           SectorTimingDatum, SegmentTimingDatum, StintChange, QualifyingSessionProgress, DriverPositionUpdate, \
+                           SectorTimingDatum, SegmentTimingDatum, StintChange, QualifyingSessionProgress, \
                            LapTimingDatum, SessionStatus, SessionConfig
 from pitwall.util import TimingTower
 
