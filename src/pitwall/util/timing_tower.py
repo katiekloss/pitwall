@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Dict, List
 from pitwall.client import PitWallClient
 from pitwall.events import Driver, DriverPositionUpdate
+from pitwall.events.timing import LapTimingDatum, TimingDatum
 
 @dataclass
 class TimingLine:
@@ -26,6 +27,7 @@ class TimingTower:
         self._client = client
         self._client.on_driver_data(self._on_driver_data)
         self._client.on_driver_position_update(self._on_driver_position_update)
+        self._client.on_timing_datum(self._on_timing_datum)
         self.drivers = dict()
 
     def _on_driver_data(self, data: List[Driver]):
@@ -63,5 +65,9 @@ class TimingTower:
             for d in gains:
                 print(f"\t{driver} lost position to {d}")
                 d.position -= 1
-                
+
         driver.position = update.position
+    
+    def _on_timing_datum(self, datum: TimingDatum):
+        if isinstance(datum, LapTimingDatum):
+            self.drivers[datum.driver_id].lap_time = datum.time

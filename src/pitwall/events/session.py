@@ -7,8 +7,10 @@ class SessionChange:
     part: str
     status: str
 
+type SessionProgress = LapSessionProgress | QualifyingSessionProgress
+
 @dataclass
-class SessionProgress:
+class LapSessionProgress:
     lap: int # not always though
 
 @dataclass

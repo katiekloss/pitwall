@@ -7,11 +7,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
+        with:
+          python-version-file: "pyproject.toml"
       - uses: https://github.com/astral-sh/setup-uv@v6
         with:
           enable-cache: true
           prune-cache: false
-      - run: uv sync --all-groups
+      - run: uv sync --locked --all-extras --dev
         id: uv
       - run: uvx ruff check --extend-select PT
         if: ${{ always() && steps.uv.conclusion == 'success' }}

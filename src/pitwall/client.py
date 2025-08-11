@@ -5,7 +5,7 @@ from pitwall.adapters.abstract import PitWallAdapter, Update
 from pitwall.events import Driver, SessionChange, SessionProgress, RaceControlMessage, \
     TimingDatum, DriverStatusUpdate, SectorTimingDatum, SegmentTimingDatum, SessionStatus, \
     StintChange, TrackStatus, Clock, QualifyingSessionProgress, DriverPositionUpdate, \
-    SessionConfig
+    SessionConfig, LapSessionProgress
 from pitwall.events.timing import LapTimingDatum
 
 class PitWallClient:
@@ -242,7 +242,7 @@ class PitWallClient:
 
         if "Lap" in session:
             lap = int(session["Lap"])
-            self._fire_callbacks(self.session_progress_callbacks, SessionProgress(lap))
+            self._fire_callbacks(self.session_progress_callbacks, LapSessionProgress(lap))
         elif "QualifyingPart" in session:
             self._fire_callbacks(self.session_progress_callbacks, QualifyingSessionProgress(session["QualifyingPart"]))
         else:

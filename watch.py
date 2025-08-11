@@ -3,6 +3,7 @@
 import asyncio
 import sys
 import argparse
+from colorist import Color
 import time
 import os
 from typing import Dict, List, Tuple
@@ -27,8 +28,9 @@ class DriverSummary:
         return f"{self.broadcast_name} ({self.number})"
 
 drivers: Dict[int, DriverSummary] = dict()
-segment_statuses = dict()
-driver_statuses = dict()
+segment_statuses: Dict[int, str] = dict()
+driver_statuses_quick: Dict[int, str] = dict()
+driver_statuses: Dict[int, int] = dict()
 lap = 1
 track_layout = {1: 0, 2: 0, 3: 0}
 
@@ -75,7 +77,7 @@ def main():
         ...
         
     print(f"Segment statuses: {segment_statuses}")
-    print(f"Driver statuses: {driver_statuses}")
+    print(f"Driver statuses: {driver_statuses_quick}")
     for driver in sorted(timing_tower.drivers.values(), key=lambda d: d.position):
         print(f"{driver.position}: {drivers[driver.driver_number]}")
 
@@ -85,22 +87,22 @@ def on_session_status(status: SessionStatus):
 def on_session_config(config: SessionConfig):
     global track_layout
 
-    print("Track config:")
+    print(f"{Color.GREEN}Track config:")
     track_layout = config.layout
     for i in config.layout:
-        print(f"\tSector {i}: {config.layout[i]} segments")
+        print(f"{Color.GREEN}\tSector {i}: {config.layout[i]} segments{Color.OFF}")
 
 def on_session_change(session: SessionChange) -> None:
-    print(f"Now watching {session.name}: {session.part} ({session.status})")
+    print(f"{Color.RED}Now watching {session.name}: {session.part} ({session.status}){Color.OFF}")
 
 def on_session_progress(progress: SessionProgress) -> None:
     if isinstance(progress, QualifyingSessionProgress):
-        print(f"Qualifying session Q{progress.part}")
+        print(f"{Color.GREEN}Qualifying session Q{progress.part}{Color.OFF}")
         return
     
     global lap
     lap = progress.lap
-    print(f"Lap {lap}")
+    print(f"{Color.GREEN}Lap {lap}{Color.OFF}")
     
     if args.to > 0 and lap >= args.to:
         raise Cancel()
@@ -151,8 +153,35 @@ def on_driver_status_update(update: DriverStatusUpdate):
         print(f"\t{drivers[update.driver_id]} retired!")
     elif update.stopped:
         print(f"\t{drivers[update.driver_id]} stopped{f" in sector {update.sector_id}" if update.sector_id is not None else ""}")
-    if update.status is not None and update.status not in driver_statuses:
-        driver_statuses[update.status] = f"{drivers[update.driver_id]} at {lap}:{update.sector_id}"
+
+    if update.status is None:
+        return
+
+    if update.driver_id not in driver_statuses:
+        print(f"\t{drivers[update.driver_id]} is now {update.status}")
+    elif driver_statuses[update.driver_id] != update.status:
+        print(f"\t{drivers[update.driver_id]} is now {update.status} (was {driver_statuses[update.driver_id]})")
+
+        # these will be in reverse order from their printed binary representation
+        # but referring to them by their list index is correct
+        old = [(driver_statuses[update.driver_id] >> i) & 1 for i in range(0, 14)]
+        new = [(update.status >> i) & 1 for i in range(0, 14)]
+        for (i, (old_bit, new_bit)) in enumerate([(old[i], new[i]) for i in range(0, 14)]):
+            status = pow(2, i)
+            if old_bit and not new_bit:
+                print(f"\t{drivers[update.driver_id]} lost status {status}")
+                # the final summary will show revoked statuses separately as negative, so it's easier
+                # to see when they lost a gained status
+                status = -status
+            elif not old_bit and new_bit:
+                print(f"\t{drivers[update.driver_id]} gained status {status}")
+            else:
+                continue
+            
+            if status not in driver_statuses_quick:
+                driver_statuses_quick[status] = f"{drivers[update.driver_id]} at {lap}:{update.sector_id}"
+    
+    driver_statuses[update.driver_id] = update.status
 
 @driver_filter
 def on_stint_change(stint: StintChange):
