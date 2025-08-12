@@ -23,6 +23,7 @@ class TimingLine:
 class TimingTower:
     _client: PitWallClient
     drivers: Dict[int, TimingLine]
+    results: List[TimingLine]
 
     def __init__(self, client: PitWallClient):
         self._client = client
@@ -49,7 +50,7 @@ class TimingTower:
             try:
                 swap_with = next(filter(lambda d: d.position == update.position, self.drivers.values()))
             except StopIteration:
-                raise(f"Can't find driver at position {update.position}")
+                raise Exception(f"Can't find driver at position {update.position}")
                 #for d in sorted(self.drivers.values(), key=lambda d: d.position):
                 #    print(f"\t{d} in {d.position}")
 
@@ -67,6 +68,7 @@ class TimingTower:
                 d.position -= 1
 
         driver.position = update.position
+        self.results = list(sorted(self.drivers.values(), key=lambda d: d.position))
     
     def _on_timing_datum(self, datum: TimingDatum):
         if isinstance(datum, LapTimingDatum):
