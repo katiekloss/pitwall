@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Dict, List
+from colorist import Color
 from pitwall.client import PitWallClient
 from pitwall.events import Driver, DriverPositionUpdate
 from pitwall.events.timing import LapTimingDatum, TimingDatum
@@ -48,22 +49,21 @@ class TimingTower:
             try:
                 swap_with = next(filter(lambda d: d.position == update.position, self.drivers.values()))
             except StopIteration:
-                print(f"Can't find driver at position {update.position}")
-                for d in sorted(self.drivers.values(), key=lambda d: d.position):
-                    print(f"\t{d} in {d.position}")
-                raise
+                raise(f"Can't find driver at position {update.position}")
+                #for d in sorted(self.drivers.values(), key=lambda d: d.position):
+                #    print(f"\t{d} in {d.position}")
 
-            print(f"\t{driver} {"overtook" if driver.position > update.position else "lost position to"} {swap_with}")
+            print(f"{Color.MAGENTA}\t{driver} {"overtook" if driver.position > update.position else "lost position to"} {swap_with}{Color.OFF}")
             swap_with.position = driver.position
         elif driver.position > update.position: # overtake
             losses = [x for x in self.drivers.values() if update.position <= x.position < driver.position]
             for d in losses:
-                print(f"\t{driver} overtook {d}")
+                print(f"{Color.MAGENTA}\t{driver} overtook {d}{Color.OFF}")
                 d.position += 1
         elif driver.position < update.position:
             gains = [x for x in self.drivers.values() if driver.position < x.position <= update.position]
             for d in gains:
-                print(f"\t{driver} lost position to {d}")
+                print(f"{Color.MAGENTA}\t{driver} lost position to {d}{Color.OFF}")
                 d.position -= 1
 
         driver.position = update.position

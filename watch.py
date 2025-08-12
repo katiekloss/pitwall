@@ -3,11 +3,12 @@
 import asyncio
 import sys
 import argparse
-from colorist import Color
 import time
 import os
+
 from typing import Dict, List, Tuple
 from dataclasses import dataclass
+from colorist import Color
 
 from pitwall import PitWallClient
 from pitwall.adapters import CaptureAdapter
@@ -65,8 +66,8 @@ def main():
     client.on_driver_status_update(on_driver_status_update)
     client.on_session_status(on_session_status)
     client.on_stint_change(on_stint_change)
-    client.on_track_status(lambda s: print(f"Track is {s.message} ({s.id})"))
-    client.on_clock(lambda c: print(f"Race time is {c.remaining}"))
+    client.on_track_status(lambda s: print(f"{Color.GREEN}Track is {s.message} ({s.id}){Color.OFF}"))
+    client.on_clock(lambda c: print(f"{Color.GREEN}Race time is {c.remaining}{Color.OFF}"))
     client.on_session_config(on_session_config)
 
     timing_tower = TimingTower(client)
@@ -82,7 +83,7 @@ def main():
         print(f"{driver.position}: {drivers[driver.driver_number]}")
 
 def on_session_status(status: SessionStatus):
-    print(f"Session is {status.status}")
+    print(f"{Color.GREEN}Session is {status.status}{Color.OFF}")
         
 def on_session_config(config: SessionConfig):
     global track_layout
@@ -93,7 +94,7 @@ def on_session_config(config: SessionConfig):
         print(f"{Color.GREEN}\tSector {i}: {config.layout[i]} segments{Color.OFF}")
 
 def on_session_change(session: SessionChange) -> None:
-    print(f"{Color.RED}Now watching {session.name}: {session.part} ({session.status}){Color.OFF}")
+    print(f"{Color.YELLOW}Now watching {session.name}: {session.part} ({session.status}){Color.OFF}")
 
 def on_session_progress(progress: SessionProgress) -> None:
     if isinstance(progress, QualifyingSessionProgress):
@@ -109,7 +110,7 @@ def on_session_progress(progress: SessionProgress) -> None:
 
 def on_race_control_update(updates: List[RaceControlMessage]) -> None:
     messages = ", ".join([x.message for x in updates])
-    print(f"Race control: {messages}")
+    print(f"{Color.RED}Race control: {messages}{Color.OFF}")
 
     # bug: this gets fired between qualifying sessions too
     # if messages == "CHEQUERED FLAG": # usually fired by itself
@@ -129,7 +130,7 @@ def on_timing_data(data: TimingDatum) -> None:
     if isinstance(data, LapTimingDatum):
         lap_time: LapTimingDatum = data
         if lap_time.overall_fastest:
-            print(f"\t{drivers[lap_time.driver_id]} set fastest lap: {lap_time.time}")
+            print(f"{Color.MAGENTA}\t{drivers[lap_time.driver_id]} set fastest lap: {lap_time.time}{Color.OFF}")
     elif isinstance(data, SegmentTimingDatum):
         segment: SegmentTimingDatum = data
         # print(f"\t{drivers[segment.driver_id]}: {segment.sector_id}:{segment.segment_id} -> {segment.status}")
@@ -145,22 +146,22 @@ def on_timing_data(data: TimingDatum) -> None:
     elif isinstance(data, SectorTimingDatum):
         sector: SectorTimingDatum = data
         if sector.overall_fastest:
-            print(f"\t{drivers[data.driver_id]} overall fastest sector {sector.sector_id} ({sector.time})")
+            print(f"{Color.MAGENTA}\t{drivers[data.driver_id]} overall fastest sector {sector.sector_id} ({sector.time}){Color.OFF}")
 
 @driver_filter
 def on_driver_status_update(update: DriverStatusUpdate):
     if update.retired:
-        print(f"\t{drivers[update.driver_id]} retired!")
+        print(f"{Color.MAGENTA}\t{drivers[update.driver_id]} retired!{Color.OFF}")
     elif update.stopped:
-        print(f"\t{drivers[update.driver_id]} stopped{f" in sector {update.sector_id}" if update.sector_id is not None else ""}")
+        print(f"{Color.MAGENTA}\t{drivers[update.driver_id]} stopped{f" in sector {update.sector_id}" if update.sector_id is not None else ""}{Color.OFF}")
 
     if update.status is None:
         return
 
     if update.driver_id not in driver_statuses:
-        print(f"\t{drivers[update.driver_id]} is now {update.status}")
+        print(f"{Color.CYAN}\t{drivers[update.driver_id]} is now {update.status}{Color.OFF}")
     elif driver_statuses[update.driver_id] != update.status:
-        print(f"\t{drivers[update.driver_id]} is now {update.status} (was {driver_statuses[update.driver_id]})")
+        print(f"{Color.CYAN}\t{drivers[update.driver_id]} is now {update.status} (was {driver_statuses[update.driver_id]}){Color.OFF}")
 
         # these will be in reverse order from their printed binary representation
         # but referring to them by their list index is correct
@@ -169,12 +170,12 @@ def on_driver_status_update(update: DriverStatusUpdate):
         for (i, (old_bit, new_bit)) in enumerate([(old[i], new[i]) for i in range(0, 14)]):
             status = pow(2, i)
             if old_bit and not new_bit:
-                print(f"\t{drivers[update.driver_id]} lost status {status}")
+                print(f"{Color.CYAN}\t{drivers[update.driver_id]} lost status {status}{Color.OFF}")
                 # the final summary will show revoked statuses separately as negative, so it's easier
                 # to see when they lost a gained status
                 status = -status
             elif not old_bit and new_bit:
-                print(f"\t{drivers[update.driver_id]} gained status {status}")
+                print(f"{Color.CYAN}\t{drivers[update.driver_id]} gained status {status}{Color.OFF}")
             else:
                 continue
             
@@ -191,10 +192,10 @@ def on_stint_change(stint: StintChange):
         return
 
     if stint.stint_number > drivers[stint.driver_id].max_stint:
-        print(f"{drivers[stint.driver_id]} started stint {stint.stint_number} on {stint.compound} tyres")
+        print(f"{Color.BLUE}{drivers[stint.driver_id]} started stint {stint.stint_number} on {stint.compound} tyres{Color.OFF}")
         drivers[stint.driver_id].max_stint = stint.stint_number
     else:
-        print(f"Correction: stint {stint.stint_number} for {drivers[stint.driver_id]} is on {stint.compound} tyres")
+        print(f"{Color.BLUE}Correction: stint {stint.stint_number} for {drivers[stint.driver_id]} is on {stint.compound} tyres{Color.OFF}")
 
 if __name__ == "__main__":
     global args

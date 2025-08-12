@@ -44,14 +44,14 @@ class DriverStatusUpdate:
     status: int | None
     """
     Driver's overall status flags. Guesses:
-    - 512: Incident related ("noted"). Gained and lost immediately.
-    - 8192: Incident related ("noted"). Also gained and lost immediately.
-    - 32: In pit lane?
-    - 4096: Set = pit in, unset = pit out?
-    - 16: Pit related
-    - 512: Pit related
     - 4: Retired/out
     - 8: Retired/out
+    - 16: Pit related
+    - 64: Racing?
+    - 32: In pit lane?
+    - 512: Pit related
+    - 4096: Set = pit in, unset = pit out?
+    - 8192: Incident related ("noted"). Also gained and lost immediately.
     """
 
 @dataclass
