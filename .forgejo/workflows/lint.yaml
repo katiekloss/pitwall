@@ -6,9 +6,6 @@ jobs:
     runs-on: docker
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version-file: "pyproject.toml"
       - uses: https://github.com/astral-sh/setup-uv@v6
         with:
           enable-cache: true
