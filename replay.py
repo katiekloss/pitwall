@@ -61,6 +61,7 @@ except (KeyboardInterrupt,BrokenPipeError):
     ...
 finally:
     try:
-        os.remove(args.output)
+        if args.output is not None:
+            os.remove(args.output)
     except (NameError,FileNotFoundError):
         ...

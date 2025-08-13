@@ -46,6 +46,21 @@ wheels = [
 ]
 
 [[package]]
+name = "aiohttp-client-cache"
+version = "0.13.0"
+source = { registry = "https://pypi.svc.kat5.dev/index" }
+dependencies = [
+    { name = "aiohttp" },
+    { name = "attrs" },
+    { name = "itsdangerous" },
+    { name = "url-normalize" },
+]
+sdist = { url = "https://pypi.svc.kat5.dev/index/aiohttp-client-cache/aiohttp_client_cache-0.13.0.tar.gz", hash = "sha256:dc5cd62340adbee18e0fedc7b0c37542692df08f8ed9945d751b7292a0433853" }
+wheels = [
+    { url = "https://pypi.svc.kat5.dev/index/aiohttp-client-cache/aiohttp_client_cache-0.13.0-py3-none-any.whl", hash = "sha256:89211544e9f290de42ef85f545cdae8eb34d1af6e51dcc8b2cf956dd539d2f39" },
+]
+
+[[package]]
 name = "aiosignal"
 version = "1.4.0"
 source = { registry = "https://pypi.svc.kat5.dev/index" }
@@ -55,6 +70,15 @@ dependencies = [
 sdist = { url = "https://pypi.svc.kat5.dev/index/aiosignal/aiosignal-1.4.0.tar.gz", hash = "sha256:f47eecd9468083c2029cc99945502cb7708b082c232f9aca65da147157b251c7" }
 wheels = [
     { url = "https://pypi.svc.kat5.dev/index/aiosignal/aiosignal-1.4.0-py3-none-any.whl", hash = "sha256:053243f8b92b990551949e63930a839ff0cf0b0ebbe0597b0f3fb19e1a0fe82e" },
+]
+
+[[package]]
+name = "annotated-types"
+version = "0.7.0"
+source = { registry = "https://pypi.svc.kat5.dev/index" }
+sdist = { url = "https://pypi.svc.kat5.dev/index/annotated-types/annotated_types-0.7.0.tar.gz", hash = "sha256:aff07c09a53a08bc8cfccb9c85b05f1aa9a2a6f23728d790723543408344ce89" }
+wheels = [
+    { url = "https://pypi.svc.kat5.dev/index/annotated-types/annotated_types-0.7.0-py3-none-any.whl", hash = "sha256:1f02e8b43a8fbbc3f3e0d4f0f4bfc8131bcb4eebe8849b8e5c773f3a1c582a53" },
 ]
 
 [[package]]
@@ -71,12 +95,74 @@ wheels = [
 ]
 
 [[package]]
+name = "appdirs"
+version = "1.4.4"
+source = { registry = "https://pypi.svc.kat5.dev/index" }
+sdist = { url = "https://pypi.svc.kat5.dev/index/appdirs/appdirs-1.4.4.tar.gz", hash = "sha256:7d5d0167b2b1ba821647616af46a749d1c653740dd0d2415100fe26e27afdf41" }
+wheels = [
+    { url = "https://pypi.svc.kat5.dev/index/appdirs/appdirs-1.4.4-py2.py3-none-any.whl", hash = "sha256:a841dacd6b99318a741b166adb07e19ee71a274450e68237b4650ca1055ab128" },
+]
+
+[[package]]
 name = "attrs"
 version = "25.3.0"
 source = { registry = "https://pypi.svc.kat5.dev/index" }
 sdist = { url = "https://pypi.svc.kat5.dev/index/attrs/attrs-25.3.0.tar.gz", hash = "sha256:75d7cefc7fb576747b2c81b4442d4d4a1ce0900973527c011d1030fd3bf4af1b" }
 wheels = [
     { url = "https://pypi.svc.kat5.dev/index/attrs/attrs-25.3.0-py3-none-any.whl", hash = "sha256:427318ce031701fea540783410126f03899a97ffc6f61596ad581ac2e40e3bc3" },
+]
+
+[[package]]
+name = "cattrs"
+version = "25.1.1"
+source = { registry = "https://pypi.svc.kat5.dev/index" }
+dependencies = [
+    { name = "attrs" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://pypi.svc.kat5.dev/index/cattrs/cattrs-25.1.1.tar.gz", hash = "sha256:c914b734e0f2d59e5b720d145ee010f1fd9a13ee93900922a2f3f9d593b8382c" }
+wheels = [
+    { url = "https://pypi.svc.kat5.dev/index/cattrs/cattrs-25.1.1-py3-none-any.whl", hash = "sha256:1b40b2d3402af7be79a7e7e097a9b4cd16d4c06e6d526644b0b26a063a1cc064" },
+]
+
+[[package]]
+name = "certifi"
+version = "2025.8.3"
+source = { registry = "https://pypi.svc.kat5.dev/index" }
+sdist = { url = "https://pypi.svc.kat5.dev/index/certifi/certifi-2025.8.3.tar.gz", hash = "sha256:e564105f78ded564e3ae7c923924435e1daa7463faeab5bb932bc53ffae63407" }
+wheels = [
+    { url = "https://pypi.svc.kat5.dev/index/certifi/certifi-2025.8.3-py3-none-any.whl", hash = "sha256:f6c12493cfb1b06ba2ff328595af9350c65d6644968e5d3a2ffd78699af217a5" },
+]
+
+[[package]]
+name = "charset-normalizer"
+version = "3.4.3"
+source = { registry = "https://pypi.svc.kat5.dev/index" }
+sdist = { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.3.tar.gz", hash = "sha256:6fce4b8500244f6fcb71465d4a4930d132ba9ab8e71a7859e6a5d59851068d14" }
+wheels = [
+    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.3-cp313-cp313-macosx_10_13_universal2.whl", hash = "sha256:14c2a87c65b351109f6abfc424cab3927b3bdece6f706e4d12faaf3d52ee5efe" },
+    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.3-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:41d1fc408ff5fdfb910200ec0e74abc40387bccb3252f3f27c0676731df2b2c8" },
+    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.3-cp313-cp313-manylinux2014_ppc64le.manylinux_2_17_ppc64le.manylinux_2_28_ppc64le.whl", hash = "sha256:1bb60174149316da1c35fa5233681f7c0f9f514509b8e399ab70fea5f17e45c9" },
+    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.3-cp313-cp313-manylinux2014_s390x.manylinux_2_17_s390x.manylinux_2_28_s390x.whl", hash = "sha256:30d006f98569de3459c2fc1f2acde170b7b2bd265dc1943e87e1a4efe1b67c31" },
+    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:416175faf02e4b0810f1f38bcb54682878a4af94059a1cd63b8747244420801f" },
+    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.3-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:6aab0f181c486f973bc7262a97f5aca3ee7e1437011ef0c2ec04b5a11d16c927" },
+    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.3-cp313-cp313-musllinux_1_2_ppc64le.whl", hash = "sha256:fdabf8315679312cfa71302f9bd509ded4f2f263fb5b765cf1433b39106c3cc9" },
+    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.3-cp313-cp313-musllinux_1_2_s390x.whl", hash = "sha256:bd28b817ea8c70215401f657edef3a8aa83c29d447fb0b622c35403780ba11d5" },
+    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.3-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:18343b2d246dc6761a249ba1fb13f9ee9a2bcd95decc767319506056ea4ad4dc" },
+    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.3-cp313-cp313-win32.whl", hash = "sha256:6fb70de56f1859a3f71261cbe41005f56a7842cc348d3aeb26237560bfa5e0ce" },
+    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.3-cp313-cp313-win_amd64.whl", hash = "sha256:cf1ebb7d78e1ad8ec2a8c4732c7be2e736f6e5123a4146c5b89c9d1f585f8cef" },
+    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.3-cp314-cp314-macosx_10_13_universal2.whl", hash = "sha256:3cd35b7e8aedeb9e34c41385fda4f73ba609e561faedfae0a9e75e44ac558a15" },
+    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.3-cp314-cp314-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:b89bc04de1d83006373429975f8ef9e7932534b8cc9ca582e4db7d20d91816db" },
+    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.3-cp314-cp314-manylinux2014_ppc64le.manylinux_2_17_ppc64le.manylinux_2_28_ppc64le.whl", hash = "sha256:2001a39612b241dae17b4687898843f254f8748b796a2e16f1051a17078d991d" },
+    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.3-cp314-cp314-manylinux2014_s390x.manylinux_2_17_s390x.manylinux_2_28_s390x.whl", hash = "sha256:8dcfc373f888e4fb39a7bc57e93e3b845e7f462dacc008d9749568b1c4ece096" },
+    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.3-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:18b97b8404387b96cdbd30ad660f6407799126d26a39ca65729162fd810a99aa" },
+    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.3-cp314-cp314-musllinux_1_2_aarch64.whl", hash = "sha256:ccf600859c183d70eb47e05a44cd80a4ce77394d1ac0f79dbd2dd90a69a3a049" },
+    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.3-cp314-cp314-musllinux_1_2_ppc64le.whl", hash = "sha256:53cd68b185d98dde4ad8990e56a58dea83a4162161b1ea9272e5c9182ce415e0" },
+    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.3-cp314-cp314-musllinux_1_2_s390x.whl", hash = "sha256:30a96e1e1f865f78b030d65241c1ee850cdf422d869e9028e2fc1d5e4db73b92" },
+    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.3-cp314-cp314-musllinux_1_2_x86_64.whl", hash = "sha256:d716a916938e03231e86e43782ca7878fb602a125a91e7acb8b5112e2e96ac16" },
+    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.3-cp314-cp314-win32.whl", hash = "sha256:c6dbd0ccdda3a2ba7c2ecd9d77b37f3b5831687d8dc1b6ca5f56a4880cc7b7ce" },
+    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.3-cp314-cp314-win_amd64.whl", hash = "sha256:73dc19b562516fc9bcf6e5d6e596df0b4eb98d87e4f79f3ae71840e6ed21361c" },
+    { url = "https://pypi.svc.kat5.dev/index/charset-normalizer/charset_normalizer-3.4.3-py3-none-any.whl", hash = "sha256:ce571ab16d890d23b5c278547ba694193a45011ff86a9162a71307ed9f86759a" },
 ]
 
 [[package]]
@@ -162,6 +248,23 @@ wheels = [
 ]
 
 [[package]]
+name = "homeassistant-api"
+version = "4.2.2.post2"
+source = { registry = "https://pypi.svc.kat5.dev/index" }
+dependencies = [
+    { name = "aiohttp" },
+    { name = "aiohttp-client-cache" },
+    { name = "pydantic" },
+    { name = "requests" },
+    { name = "requests-cache" },
+    { name = "simplejson" },
+]
+sdist = { url = "https://pypi.svc.kat5.dev/index/homeassistant-api/homeassistant_api-4.2.2.post2.tar.gz", hash = "sha256:8f819abfade0ed8c604c39a034e04506fe7ff329dc2691852e799b3806e5a774" }
+wheels = [
+    { url = "https://pypi.svc.kat5.dev/index/homeassistant-api/homeassistant_api-4.2.2.post2-py3-none-any.whl", hash = "sha256:b3f5f63526389ca036dc16b933516321b9d53c8441fc78057df3c8329040cec1" },
+]
+
+[[package]]
 name = "idna"
 version = "3.10"
 source = { registry = "https://pypi.svc.kat5.dev/index" }
@@ -177,6 +280,15 @@ source = { registry = "https://pypi.svc.kat5.dev/index" }
 sdist = { url = "https://pypi.svc.kat5.dev/index/iniconfig/iniconfig-2.1.0.tar.gz", hash = "sha256:3abbd2e30b36733fee78f9c7f7308f2d0050e88f0087fd25c2645f63c773e1c7" }
 wheels = [
     { url = "https://pypi.svc.kat5.dev/index/iniconfig/iniconfig-2.1.0-py3-none-any.whl", hash = "sha256:9deba5723312380e77435581c6bf4935c94cbfab9b1ed33ef8d238ea168eb760" },
+]
+
+[[package]]
+name = "itsdangerous"
+version = "2.2.0"
+source = { registry = "https://pypi.svc.kat5.dev/index" }
+sdist = { url = "https://pypi.svc.kat5.dev/index/itsdangerous/itsdangerous-2.2.0.tar.gz", hash = "sha256:e0050c0b7da1eea53ffaf149c0cfbb5c6e2e2b69c4bef22c81fa6eb73e5f6173" }
+wheels = [
+    { url = "https://pypi.svc.kat5.dev/index/itsdangerous/itsdangerous-2.2.0-py3-none-any.whl", hash = "sha256:c6242fc49e35958c8b15141343aa660db5fc54d4f13a1db01a3f5891b98700ef" },
 ]
 
 [[package]]
@@ -296,6 +408,11 @@ dependencies = [
     { name = "pysignalr" },
 ]
 
+[package.optional-dependencies]
+homeassistant = [
+    { name = "homeassistant-api" },
+]
+
 [package.dev-dependencies]
 dev = [
     { name = "flake8-pytest-style" },
@@ -309,9 +426,11 @@ dev = [
 requires-dist = [
     { name = "anyio", specifier = ">=4.9.0" },
     { name = "colorist", specifier = ">=1.8.5" },
+    { name = "homeassistant-api", marker = "extra == 'homeassistant'", specifier = ">=4.2.2.post2" },
     { name = "orjson", specifier = ">=3.11.1" },
     { name = "pysignalr", specifier = ">=1.3.0" },
 ]
+provides-extras = ["homeassistant"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -373,6 +492,43 @@ wheels = [
 ]
 
 [[package]]
+name = "pydantic"
+version = "2.8.2"
+source = { registry = "https://pypi.svc.kat5.dev/index" }
+dependencies = [
+    { name = "annotated-types" },
+    { name = "pydantic-core" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://pypi.svc.kat5.dev/index/pydantic/pydantic-2.8.2.tar.gz", hash = "sha256:6f62c13d067b0755ad1c21a34bdd06c0c12625a22b0fc09c6b149816604f7c2a" }
+wheels = [
+    { url = "https://pypi.svc.kat5.dev/index/pydantic/pydantic-2.8.2-py3-none-any.whl", hash = "sha256:73ee9fddd406dc318b885c7a2eab8a6472b68b8fb5ba8150949fc3db939f23c8" },
+]
+
+[[package]]
+name = "pydantic-core"
+version = "2.20.1"
+source = { registry = "https://pypi.svc.kat5.dev/index" }
+dependencies = [
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://pypi.svc.kat5.dev/index/pydantic-core/pydantic_core-2.20.1.tar.gz", hash = "sha256:26ca695eeee5f9f1aeeb211ffc12f10bcb6f71e2989988fda61dabd65db878d4" }
+wheels = [
+    { url = "https://pypi.svc.kat5.dev/index/pydantic-core/pydantic_core-2.20.1-cp313-cp313-macosx_10_12_x86_64.whl", hash = "sha256:0827505a5c87e8aa285dc31e9ec7f4a17c81a813d45f70b1d9164e03a813a686" },
+    { url = "https://pypi.svc.kat5.dev/index/pydantic-core/pydantic_core-2.20.1-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:19c0fa39fa154e7e0b7f82f88ef85faa2a4c23cc65aae2f5aea625e3c13c735a" },
+    { url = "https://pypi.svc.kat5.dev/index/pydantic-core/pydantic_core-2.20.1-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:4aa223cd1e36b642092c326d694d8bf59b71ddddc94cdb752bbbb1c5c91d833b" },
+    { url = "https://pypi.svc.kat5.dev/index/pydantic-core/pydantic_core-2.20.1-cp313-cp313-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:c336a6d235522a62fef872c6295a42ecb0c4e1d0f1a3e500fe949415761b8a19" },
+    { url = "https://pypi.svc.kat5.dev/index/pydantic-core/pydantic_core-2.20.1-cp313-cp313-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:7eb6a0587eded33aeefea9f916899d42b1799b7b14b8f8ff2753c0ac1741edac" },
+    { url = "https://pypi.svc.kat5.dev/index/pydantic-core/pydantic_core-2.20.1-cp313-cp313-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:70c8daf4faca8da5a6d655f9af86faf6ec2e1768f4b8b9d0226c02f3d6209703" },
+    { url = "https://pypi.svc.kat5.dev/index/pydantic-core/pydantic_core-2.20.1-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:e9fa4c9bf273ca41f940bceb86922a7667cd5bf90e95dbb157cbb8441008482c" },
+    { url = "https://pypi.svc.kat5.dev/index/pydantic-core/pydantic_core-2.20.1-cp313-cp313-manylinux_2_5_i686.manylinux1_i686.whl", hash = "sha256:11b71d67b4725e7e2a9f6e9c0ac1239bbc0c48cce3dc59f98635efc57d6dac83" },
+    { url = "https://pypi.svc.kat5.dev/index/pydantic-core/pydantic_core-2.20.1-cp313-cp313-musllinux_1_1_aarch64.whl", hash = "sha256:270755f15174fb983890c49881e93f8f1b80f0b5e3a3cc1394a255706cabd203" },
+    { url = "https://pypi.svc.kat5.dev/index/pydantic-core/pydantic_core-2.20.1-cp313-cp313-musllinux_1_1_x86_64.whl", hash = "sha256:c81131869240e3e568916ef4c307f8b99583efaa60a8112ef27a366eefba8ef0" },
+    { url = "https://pypi.svc.kat5.dev/index/pydantic-core/pydantic_core-2.20.1-cp313-none-win32.whl", hash = "sha256:b91ced227c41aa29c672814f50dbb05ec93536abf8f43cd14ec9521ea09afe4e" },
+    { url = "https://pypi.svc.kat5.dev/index/pydantic-core/pydantic_core-2.20.1-cp313-none-win_amd64.whl", hash = "sha256:65db0f2eefcaad1a3950f498aabb4875c8890438bc80b19362cf633b87a8ab20" },
+]
+
+[[package]]
 name = "pygments"
 version = "2.19.2"
 source = { registry = "https://pypi.svc.kat5.dev/index" }
@@ -425,6 +581,38 @@ wheels = [
 ]
 
 [[package]]
+name = "requests"
+version = "2.32.4"
+source = { registry = "https://pypi.svc.kat5.dev/index" }
+dependencies = [
+    { name = "certifi" },
+    { name = "charset-normalizer" },
+    { name = "idna" },
+    { name = "urllib3" },
+]
+sdist = { url = "https://pypi.svc.kat5.dev/index/requests/requests-2.32.4.tar.gz", hash = "sha256:27d0316682c8a29834d3264820024b62a36942083d52caf2f14c0591336d3422" }
+wheels = [
+    { url = "https://pypi.svc.kat5.dev/index/requests/requests-2.32.4-py3-none-any.whl", hash = "sha256:27babd3cda2a6d50b30443204ee89830707d396671944c998b5975b031ac2b2c" },
+]
+
+[[package]]
+name = "requests-cache"
+version = "0.9.8"
+source = { registry = "https://pypi.svc.kat5.dev/index" }
+dependencies = [
+    { name = "appdirs" },
+    { name = "attrs" },
+    { name = "cattrs" },
+    { name = "requests" },
+    { name = "url-normalize" },
+    { name = "urllib3" },
+]
+sdist = { url = "https://pypi.svc.kat5.dev/index/requests-cache/requests_cache-0.9.8.tar.gz", hash = "sha256:eaed4eb5fd5c392ba5e7cfa000d4ab96b1d32c1a1620f37aa558c43741ac362b" }
+wheels = [
+    { url = "https://pypi.svc.kat5.dev/index/requests-cache/requests_cache-0.9.8-py3-none-any.whl", hash = "sha256:3a16021a4b5014b5b32af9c34f07cb911e99a69074d664dfd4fddb62a2997c21" },
+]
+
+[[package]]
 name = "ruff"
 version = "0.12.7"
 source = { registry = "https://pypi.svc.kat5.dev/index" }
@@ -447,6 +635,28 @@ wheels = [
     { url = "https://pypi.svc.kat5.dev/index/ruff/ruff-0.12.7-py3-none-win32.whl", hash = "sha256:c928f1b2ec59fb77dfdf70e0419408898b63998789cc98197e15f560b9e77f77" },
     { url = "https://pypi.svc.kat5.dev/index/ruff/ruff-0.12.7-py3-none-win_amd64.whl", hash = "sha256:9c18f3d707ee9edf89da76131956aba1270c6348bfee8f6c647de841eac7194f" },
     { url = "https://pypi.svc.kat5.dev/index/ruff/ruff-0.12.7-py3-none-win_arm64.whl", hash = "sha256:dfce05101dbd11833a0776716d5d1578641b7fddb537fe7fa956ab85d1769b69" },
+]
+
+[[package]]
+name = "simplejson"
+version = "3.20.1"
+source = { registry = "https://pypi.svc.kat5.dev/index" }
+sdist = { url = "https://pypi.svc.kat5.dev/index/simplejson/simplejson-3.20.1.tar.gz", hash = "sha256:e64139b4ec4f1f24c142ff7dcafe55a22b811a74d86d66560c8815687143037d" }
+wheels = [
+    { url = "https://pypi.svc.kat5.dev/index/simplejson/simplejson-3.20.1-cp313-cp313-macosx_10_13_universal2.whl", hash = "sha256:71e849e7ceb2178344998cbe5ade101f1b329460243c79c27fbfc51c0447a7c3" },
+    { url = "https://pypi.svc.kat5.dev/index/simplejson/simplejson-3.20.1-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:b63fdbab29dc3868d6f009a59797cefaba315fd43cd32ddd998ee1da28e50e29" },
+    { url = "https://pypi.svc.kat5.dev/index/simplejson/simplejson-3.20.1-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:1190f9a3ce644fd50ec277ac4a98c0517f532cfebdcc4bd975c0979a9f05e1fb" },
+    { url = "https://pypi.svc.kat5.dev/index/simplejson/simplejson-3.20.1-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:c1336ba7bcb722ad487cd265701ff0583c0bb6de638364ca947bb84ecc0015d1" },
+    { url = "https://pypi.svc.kat5.dev/index/simplejson/simplejson-3.20.1-cp313-cp313-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:e975aac6a5acd8b510eba58d5591e10a03e3d16c1cf8a8624ca177491f7230f0" },
+    { url = "https://pypi.svc.kat5.dev/index/simplejson/simplejson-3.20.1-cp313-cp313-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:6a6dd11ee282937ad749da6f3b8d87952ad585b26e5edfa10da3ae2536c73078" },
+    { url = "https://pypi.svc.kat5.dev/index/simplejson/simplejson-3.20.1-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:ab980fcc446ab87ea0879edad41a5c28f2d86020014eb035cf5161e8de4474c6" },
+    { url = "https://pypi.svc.kat5.dev/index/simplejson/simplejson-3.20.1-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:f5aee2a4cb6b146bd17333ac623610f069f34e8f31d2f4f0c1a2186e50c594f0" },
+    { url = "https://pypi.svc.kat5.dev/index/simplejson/simplejson-3.20.1-cp313-cp313-musllinux_1_2_i686.whl", hash = "sha256:652d8eecbb9a3b6461b21ec7cf11fd0acbab144e45e600c817ecf18e4580b99e" },
+    { url = "https://pypi.svc.kat5.dev/index/simplejson/simplejson-3.20.1-cp313-cp313-musllinux_1_2_ppc64le.whl", hash = "sha256:8c09948f1a486a89251ee3a67c9f8c969b379f6ffff1a6064b41fea3bce0a112" },
+    { url = "https://pypi.svc.kat5.dev/index/simplejson/simplejson-3.20.1-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:cbbd7b215ad4fc6f058b5dd4c26ee5c59f72e031dfda3ac183d7968a99e4ca3a" },
+    { url = "https://pypi.svc.kat5.dev/index/simplejson/simplejson-3.20.1-cp313-cp313-win32.whl", hash = "sha256:ae81e482476eaa088ef9d0120ae5345de924f23962c0c1e20abbdff597631f87" },
+    { url = "https://pypi.svc.kat5.dev/index/simplejson/simplejson-3.20.1-cp313-cp313-win_amd64.whl", hash = "sha256:1b9fd15853b90aec3b1739f4471efbf1ac05066a2c7041bf8db821bb73cd2ddc" },
+    { url = "https://pypi.svc.kat5.dev/index/simplejson/simplejson-3.20.1-py3-none-any.whl", hash = "sha256:8a6c1bbac39fa4a79f83cbf1df6ccd8ff7069582a9fd8db1e52cea073bc2c697" },
 ]
 
 [[package]]
@@ -481,6 +691,36 @@ wheels = [
     { url = "https://pypi.svc.kat5.dev/index/ty/ty-0.0.1a16-py3-none-win32.whl", hash = "sha256:4113a176a8343196d73145668460873d26ccef8766ff4e5287eec2622ce8754d" },
     { url = "https://pypi.svc.kat5.dev/index/ty/ty-0.0.1a16-py3-none-win_amd64.whl", hash = "sha256:508ba4c50bc88f1a7c730d40f28d6c679696ee824bc09630c7c6763911de862a" },
     { url = "https://pypi.svc.kat5.dev/index/ty/ty-0.0.1a16-py3-none-win_arm64.whl", hash = "sha256:36f53e430b5e0231d6b6672160c981eaf7f9390162380bcd1096941b2c746b5d" },
+]
+
+[[package]]
+name = "typing-extensions"
+version = "4.14.1"
+source = { registry = "https://pypi.svc.kat5.dev/index" }
+sdist = { url = "https://pypi.svc.kat5.dev/index/typing-extensions/typing_extensions-4.14.1.tar.gz", hash = "sha256:38b39f4aeeab64884ce9f74c94263ef78f3c22467c8724005483154c26648d36" }
+wheels = [
+    { url = "https://pypi.svc.kat5.dev/index/typing-extensions/typing_extensions-4.14.1-py3-none-any.whl", hash = "sha256:d1e1e3b58374dc93031d6eda2420a48ea44a36c2b4766a4fdeb3710755731d76" },
+]
+
+[[package]]
+name = "url-normalize"
+version = "2.2.1"
+source = { registry = "https://pypi.svc.kat5.dev/index" }
+dependencies = [
+    { name = "idna" },
+]
+sdist = { url = "https://pypi.svc.kat5.dev/index/url-normalize/url_normalize-2.2.1.tar.gz", hash = "sha256:74a540a3b6eba1d95bdc610c24f2c0141639f3ba903501e61a52a8730247ff37" }
+wheels = [
+    { url = "https://pypi.svc.kat5.dev/index/url-normalize/url_normalize-2.2.1-py3-none-any.whl", hash = "sha256:3deb687587dc91f7b25c9ae5162ffc0f057ae85d22b1e15cf5698311247f567b" },
+]
+
+[[package]]
+name = "urllib3"
+version = "2.5.0"
+source = { registry = "https://pypi.svc.kat5.dev/index" }
+sdist = { url = "https://pypi.svc.kat5.dev/index/urllib3/urllib3-2.5.0.tar.gz", hash = "sha256:3fc47733c7e419d4bc3f6b3dc2b4f890bb743906a30d56ba4a5bfa4bbff92760" }
+wheels = [
+    { url = "https://pypi.svc.kat5.dev/index/urllib3/urllib3-2.5.0-py3-none-any.whl", hash = "sha256:e6b01673c0fa6a13e374b50871808eb3bf7046c4b125b216f6bf1cc604cff0dc" },
 ]
 
 [[package]]
