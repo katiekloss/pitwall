@@ -47,15 +47,16 @@ def driver_filter(func):
     return wrapper
 
 def main():
-    for i in range(20):
-        if os.path.exists(args.input):
-            break
-        print(f"Waiting for {args.input}: {i}")
-        time.sleep(1)
+    if args.input != "-":
+        for i in range(20):
+            if os.path.exists(args.input):
+                break
+            print(f"Waiting for {args.input}: {i}")
+            time.sleep(1)
 
-    if not os.path.exists(args.input):
-        print(f"{args.input} didn't exist within 20 seconds")
-        sys.exit(255)
+        if not os.path.exists(args.input):
+            print(f"{args.input} didn't exist within 20 seconds")
+            sys.exit(255)
 
     client = PitWallClient(CaptureAdapter(args.input))
     client.on_session_change(on_session_change)
@@ -201,7 +202,7 @@ if __name__ == "__main__":
     global args
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-i", "--input", required=True)
+    parser.add_argument("-i", "--input", default="-")
     parser.add_argument("-f", "--from", default=0)
     parser.add_argument("-t", "--to", default=0, type=int)
     parser.add_argument("-d", "--driver", type=int)

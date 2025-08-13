@@ -1,3 +1,4 @@
+import sys
 import orjson
 from pitwall.adapters.abstract import EOS, PitWallAdapter, Update
 
@@ -7,7 +8,11 @@ class CaptureAdapter(PitWallAdapter):
         self.filename = filename
 
     async def run(self) -> None:
-        in_file = open(self.filename, "r")
+        if self.filename == "-":
+            in_file = sys.stdin
+        else:
+            in_file = open(self.filename, "r")
+
         for line in in_file:
             try:
                 self._message(self.parse_line(line))

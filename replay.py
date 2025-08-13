@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import sys
 from anyio import open_file, run
 import asyncio
 import os
@@ -14,7 +15,7 @@ async def main():
         os.mkfifo(args.output)
         output = open(args.output, "a")
     else:
-        output = None
+        output = sys.stdout
 
     async with await open_file(args.input) as file:
         last_ts = None
@@ -33,11 +34,8 @@ async def main():
                 await asyncio.sleep(wait_s)
 
             offset_time = time.time_ns()
-            if output is not None:
-                output.write(f"{ts}:{type}:{data}\n")
-                output.flush()
-            else:
-                print([ts, type, data], flush=True)
+            output.write(f"{ts}:{type}:{data}\n")
+            output.flush()
             offset_time = time.time_ns() - offset_time
             if offset_time < 0:
                 offset_time = 0
@@ -64,5 +62,5 @@ except (KeyboardInterrupt,BrokenPipeError):
 finally:
     try:
         os.remove(args.output)
-    except FileNotFoundError:
+    except (NameError,FileNotFoundError):
         ...
