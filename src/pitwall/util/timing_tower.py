@@ -52,6 +52,7 @@ class TimingTower:
         driver = self.drivers[update.driver_id]
         if driver.position == 99:
             driver.position = update.position
+            self._call_position_update_callbacks(driver)
             return
 
         # TODO: refactor this when my brain has more capacity for mathing
