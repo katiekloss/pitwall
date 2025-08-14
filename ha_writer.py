@@ -1,6 +1,7 @@
 import asyncio
 from dataclasses import dataclass
 import os
+from typing import Dict, List
 
 import homeassistant_api
 from homeassistant_api import State
@@ -9,6 +10,7 @@ from homeassistant_api.rawclient import RawClient as HomeAssistantClient
 from pitwall import PitWallClient
 from pitwall.adapters import CaptureAdapter
 from pitwall.events import SessionStatus, LapSessionProgress, QualifyingSessionProgress, SessionChange, SessionProgress
+from pitwall.events.drivers import Driver
 from pitwall.util.timing_tower import TimingLine, TimingTower
 
 @dataclass
@@ -19,10 +21,12 @@ class SessionState:
 
 ha: HomeAssistantClient = None # ty: ignore[invalid-assignment]
 session: SessionState = SessionState(None, 0, 0)
+drivers: Dict[int, Driver] = dict()
 
 async def main():
     global ha
     client = PitWallClient(CaptureAdapter("-"))
+    client.on_driver_data(on_driver_data)
     client.on_session_status(on_session_status)
     client.on_session_progress(on_session_progress)
     client.on_session_change(on_session_change)
@@ -32,6 +36,10 @@ async def main():
 
     with homeassistant_api.Client(os.environ["HOMEASSISTANT_URL"], os.environ["HOMEASSISTANT_TOKEN"]) as ha:
         await client.go()
+
+def on_driver_data(data: List[Driver]):
+    for driver in data:
+        drivers[driver.number] = driver
 
 def on_session_change(update: SessionChange):
     if update.status == "Generating":
@@ -51,9 +59,14 @@ def on_session_progress(update: SessionProgress):
 
     update_session()
 
-def on_position_change(driver: TimingLine):
-    if driver.position == 1:
-        ha.set_state(State(entity_id="sensor.f1_leader", state=driver.name, attributes={"number": driver.driver_number}))
+def on_position_change(line: TimingLine):
+    if line.position == 1:
+        driver = drivers[line.driver_number]
+        ha.set_state(State(entity_id="sensor.f1_leader",
+                           state=driver.broadcast_name,
+                           attributes={"number": driver.number,
+                                       "color": driver.team_color,
+                                       "team": driver.team_name}))
 
 def update_session():
     if session.lap > 0:

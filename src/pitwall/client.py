@@ -125,13 +125,16 @@ class PitWallClient:
                 if driver_id == "_kf": # idk what this is but SignalR LOVES serializing it
                     continue
 
-                if "BroadcastName" not in driver_data[driver_id]:
+                driver = driver_data[driver_id]
+                if "BroadcastName" not in driver:
                     continue
 
-                drivers.append(Driver(int(driver_id), driver_data[driver_id]["BroadcastName"]))
+                drivers.append(Driver(int(driver_id), driver["BroadcastName"], driver["TeamName"], \
+                                      driver["TeamColour"], driver["FirstName"], driver["LastName"]))
         else:
             for driver in driver_data:
-                drivers.append(Driver(driver["RacingNumber"], driver["BroadcastName"]))
+                drivers.append(Driver(driver["RacingNumber"], driver["BroadcastName"], driver["TeamName"],
+                                      driver["TeamColour"], driver["FirstName"], driver["LastName"]))
         
         return drivers
 
