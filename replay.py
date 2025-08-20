@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import copy
+import queue
 import sys
 from anyio import run
 import asyncio
@@ -9,43 +11,63 @@ import argparse
 import logging
 
 import orjson
-from pitwall.adapters.abstract import PitWallAdapter, Update
+from pitwall.adapters.abstract import EOS, PitWallAdapter, Update
+from pitwall.adapters.captureadapter import CaptureAdapter
 
 class RealtimeReplayAdapter(PitWallAdapter):
-    _filename: str
+    _inner_adapter: PitWallAdapter
     _multiplier: int
     _log: logging.Logger
+    _queue: asyncio.Queue
 
-    def __init__(self, filename, multiplier = 1):
+    def __init__(self, inner_adapter: PitWallAdapter, multiplier = 1):
         super().__init__()
-        self._filename = filename
+        self._inner_adapter = inner_adapter
+        self._inner_adapter.on_message(self._on_message)
         self._multiplier = multiplier
         self._log = logging.getLogger(__name__)
+        self._queue = asyncio.Queue()
+
+    def _on_message(self, update: Update):
+        self._queue.put_nowait(update)
 
     async def run(self):
-        with open(self._filename) as file:
-            last_ts = None
-            for next_line in file:
-                (ts, type, data) = next_line.split(":", 2)
-                ts = int(ts)
-                data = orjson.loads(data.rstrip())
-                if last_ts is None:
-                    ...
-                else:
-                    wait_s = (ts - last_ts) / 1000000000
-                    # helps get through waiting forever
-                    if wait_s > 5:
-                        wait_s = 5
-                    wait_s = wait_s / self._multiplier
-                    self._log.debug("Need to wait %.3fs for next update", wait_s)
-                    await asyncio.sleep(wait_s)
+        await asyncio.gather(self._inner_adapter.run(),
+                             self._inner_run())
+        
+    async def _inner_run(self):
+        last_ts = None
 
-                offset_time = time.time_ns()
-                self._message(Update(type, data, ts))
-                offset_time = time.time_ns() - offset_time
-                if offset_time < 0:
-                    offset_time = 0
-                last_ts = ts + offset_time
+        while True:
+            next_update: Update = await self._queue.get()
+
+            if last_ts is None: # or if we spent any amount of time waiting on the queue (i.e. it's already realtime)
+                ...
+            else:
+                wait_s = (next_update.ts - last_ts) / 1000000000
+                # helps get through waiting forever
+                if wait_s > 5:
+                    wait_s = 5
+                wait_s = wait_s / self._multiplier
+                self._log.debug("Need to wait %.3fs for next update", wait_s)
+                await asyncio.sleep(wait_s)
+
+            # measure the amount of time spent processing the message callbacks
+            # and add it to the current update's timestamp, so that the next
+            # computed wait period is that much shorter. This only really matters
+            # if the inner adapter always has data available, like a replay from
+            # a captured event; otherwise, we'll spend more time waiting for
+            # the next message.
+            offset_time = time.time_ns()
+
+            # also, some other adapters do shenanigans with the message timestamps,
+            # so fire a copy to avoid them breaking our timing calculations
+            self._message(copy.copy(next_update))
+            
+            offset_time = time.time_ns() - offset_time
+            if offset_time < 0:
+                offset_time = 0
+            last_ts = next_update.ts + offset_time
 
 async def main():
     if args.output is not None:
@@ -57,7 +79,7 @@ async def main():
     else:
         output = sys.stdout
 
-    adapter = RealtimeReplayAdapter(args.input, args.multiplier)
+    adapter = RealtimeReplayAdapter(CaptureAdapter(args.input), args.multiplier)
     adapter.on_message(lambda u: output.write(f"{u.ts}:{u.src}:{orjson.dumps(u.data).decode()}\n"))
     await adapter.run()
 
@@ -75,7 +97,7 @@ if __name__ == "__main__":
             args.multiplier = 1
 
         run(main)
-    except (KeyboardInterrupt,BrokenPipeError):
+    except (KeyboardInterrupt,BrokenPipeError,EOS):
         ...
     finally:
         try:
