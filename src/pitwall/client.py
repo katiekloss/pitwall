@@ -6,7 +6,7 @@ from pitwall.events import Driver, SessionChange, SessionProgress, RaceControlMe
     TimingDatum, DriverStatusUpdate, SectorTimingDatum, SegmentTimingDatum, SessionStatus, \
     StintChange, TrackStatus, Clock, QualifyingSessionProgress, DriverPositionUpdate, \
     SessionConfig, LapSessionProgress
-from pitwall.events.timing import LapTimingDatum
+from pitwall.events.timing import LapTimingDatum, LeaderTimingDatum, IntervalTimingDatum
 
 class PitWallClient:
 
@@ -159,8 +159,24 @@ class PitWallClient:
                 if "Status" in driver or "Stopped" in driver:
                     self._fire_callbacks(self.driver_status_update_callbacks, DriverStatusUpdate(int(driver_id), None, driver.get("Retired", None), driver.get("Stopped", None), driver["Status"]))
                 
-                # print(driver)
-                # probably "GapToLeader" and/or "IntervalToPositionAhead" instead
+                if "GapToLeader" in driver and driver["GapToLeader"] != "":
+                    if str.startswith(driver["GapToLeader"], "LAP"):
+                        time = 0
+                    elif str.endswith(driver["GapToLeader"], " L"):
+                        # TODO: it's "1 L" meaning lapped once, but I don't know how to represent that
+                        time = 999
+                    else:
+                        time = float(driver["GapToLeader"][1:])
+                    self._fire_callbacks(self.timing_data_callbacks, LeaderTimingDatum(int(driver_id), time))
+
+                # sometimes it has a Catching bool property instead of a time, which I don't know the meaning of
+                if "IntervalToPositionAhead" in driver and "Value" in driver["IntervalToPositionAhead"]:
+                    if str.startswith(driver["IntervalToPositionAhead"]["Value"], "LAP"):
+                        time = 0
+                    else:
+                        time = float(driver["IntervalToPositionAhead"]["Value"][1:])
+                    self._fire_callbacks(self.timing_data_callbacks, IntervalTimingDatum(int(driver_id), time))
+                
                 continue
 
             # happens at the start of the race to reset everyone, for some reason it's not a dict

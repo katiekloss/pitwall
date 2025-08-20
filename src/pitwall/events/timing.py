@@ -36,6 +36,16 @@ class LapTimingDatum:
     time: float
 
 @dataclass
+class IntervalTimingDatum:
+    driver_id: int
+    time_to_driver_ahead: float
+
+@dataclass
+class LeaderTimingDatum:
+    driver_id: int
+    time_to_leader: float
+
+@dataclass
 class DriverStatusUpdate:
     driver_id: int
     sector_id: int | None

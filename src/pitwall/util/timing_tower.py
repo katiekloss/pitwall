@@ -3,7 +3,7 @@ from typing import Callable, Dict, List
 from colorist import Color
 from pitwall.client import PitWallClient
 from pitwall.events import Driver, DriverPositionUpdate
-from pitwall.events.timing import LapTimingDatum, TimingDatum
+from pitwall.events.timing import LapTimingDatum, TimingDatum, LeaderTimingDatum, IntervalTimingDatum
 
 @dataclass
 class TimingLine:
@@ -12,9 +12,9 @@ class TimingLine:
     position: int
     lap_time: int
     """Time of last lap"""
-    interval_time: int
+    interval_time: float
     """Time to the driver ahead"""
-    leader_time: int
+    leader_time: float
     """Time to the leader"""
 
     def __repr__(self):
@@ -88,3 +88,7 @@ class TimingTower:
     def _on_timing_datum(self, datum: TimingDatum):
         if isinstance(datum, LapTimingDatum):
             self.drivers[datum.driver_id].lap_time = datum.time
+        elif isinstance(datum, LeaderTimingDatum):
+            self.drivers[datum.driver_id].leader_time = datum.time_to_leader
+        elif isinstance(datum, IntervalTimingDatum):
+            self.drivers[datum.driver_id].interval_time = datum.time_to_driver_ahead
