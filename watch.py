@@ -5,17 +5,26 @@ import sys
 import argparse
 import time
 import os
+import logging
 
 from typing import Dict, List, Tuple
 from dataclasses import dataclass
 from colorist import Color
+from pysignalr.client import SignalRClient
 
 from pitwall import PitWallClient
 from pitwall.adapters import CaptureAdapter
+from pitwall.adapters.websocketadapter import WebsocketAdapter
+from pitwall.adapters.rabbitadapter import RabbitAdapter
 from pitwall.events import SessionChange, Driver, SessionProgress, RaceControlMessage, TimingDatum, DriverStatusUpdate, \
                            SectorTimingDatum, SegmentTimingDatum, StintChange, QualifyingSessionProgress, \
                            LapTimingDatum, SessionStatus, SessionConfig
 from pitwall.util import TimingTower
+
+logging.basicConfig(
+    format="%(asctime)s %(name)s: %(message)s",
+    level=logging.INFO,
+)
 
 @dataclass
 class DriverSummary:
@@ -34,6 +43,7 @@ driver_statuses_quick: Dict[int, str] = dict()
 driver_statuses: Dict[int, int] = dict()
 lap = 1
 track_layout = {1: 0, 2: 0, 3: 0}
+timing_tower: TimingTower
 
 class Cancel(Exception):
     ...
@@ -47,18 +57,27 @@ def driver_filter(func):
     return wrapper
 
 def main():
-    if args.input != "-":
-        for i in range(20):
-            if os.path.exists(args.input):
-                break
-            print(f"Waiting for {args.input}: {i}")
-            time.sleep(1)
+    global timing_tower
 
-        if not os.path.exists(args.input):
-            print(f"{args.input} didn't exist within 20 seconds")
-            sys.exit(255)
+    # TODO: guess what
+    if str.startswith(args.input, "ws://") or str.startswith(args.input, "wss://"):
+        adapter = WebsocketAdapter(SignalRClient(args.input))
+    elif str.startswith(args.input, "amqp://") or str.startswith(args.input, "amqps://"):
+        adapter = RabbitAdapter(args.input)
+    else:
+        if args.input != "-":
+            for i in range(20):
+                if os.path.exists(args.input):
+                    break
+                print(f"Waiting for {args.input}: {i}")
+                time.sleep(1)
 
-    client = PitWallClient(CaptureAdapter(args.input))
+            if not os.path.exists(args.input):
+                print(f"{args.input} didn't exist within 20 seconds")
+                sys.exit(255)
+        adapter = CaptureAdapter(args.input)
+    
+    client = PitWallClient(adapter)
     client.on_session_change(on_session_change)
     client.on_session_progress(on_session_progress)
     client.on_driver_data(init_drivers)
