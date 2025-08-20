@@ -17,7 +17,7 @@ updates: queue.Queue = queue.Queue()
 
 logging.basicConfig(
     format="%(asctime)s %(name)s: %(message)s",
-    level=logging.DEBUG,
+    level=logging.INFO,
 )
 
 async def main():
@@ -29,7 +29,10 @@ async def main():
 
     #adapter = WebsocketAdapter(SignalRClient("wss://livetiming.formula1.com/signalrcore"))
     adapter = RealtimeReplayAdapter(sys.argv[1])
-    adapter.on_message(lambda u: channel.basic_publish(exchange='pitwall', routing_key=u.src, body=orjson.dumps(u.data)))
+    adapter.on_message(lambda u: channel.basic_publish(exchange='pitwall',
+                                                       routing_key=u.src,
+                                                       body=orjson.dumps(u.data),
+                                                       properties=pika.BasicProperties(timestamp = int(u.ts / 1000000000))))
 
     await adapter.run()
 
