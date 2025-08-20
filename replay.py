@@ -62,7 +62,7 @@ class RealtimeReplayAdapter(PitWallAdapter):
 
             # also, some other adapters do shenanigans with the message timestamps,
             # so fire a copy to avoid them breaking our timing calculations
-            self._message(copy.copy(next_update))
+            await self._message(copy.copy(next_update))
             
             offset_time = time.time_ns() - offset_time
             if offset_time < 0:

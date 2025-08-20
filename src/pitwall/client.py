@@ -80,7 +80,7 @@ class PitWallClient:
     def on_session_config(self, callback: Callable[[SessionConfig], None]) -> None:
         self.session_config_callbacks.append(callback)
 
-    def _update(self, update: Update):
+    async def _update(self, update: Update):
         # should this be an entirely separate event, rather than a magic string?
         if update.src == "init":
             self._fire_callbacks(self.driver_data_callbacks, self._parse_drivers(update.data["DriverList"]))

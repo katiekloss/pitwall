@@ -16,10 +16,10 @@ class WebsocketAdapter(PitWallAdapter):
     async def on_feed(self, message):
         source = message[0]
         data = message[1]
-        self._message(Update(source, data, time.time_ns()))
+        await self._message(Update(source, data, time.time_ns()))
 
     async def on_subscribe(self, message):
-        self._message(Update("init", message.result, time.time_ns()))
+        await self._message(Update("init", message.result, time.time_ns()))
 
     async def run(self) -> None:
         await asyncio.gather(

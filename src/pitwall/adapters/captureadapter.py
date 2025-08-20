@@ -1,5 +1,6 @@
 import sys
 import orjson
+from anyio import open_file, wrap_file
 from pitwall.adapters.abstract import EOS, PitWallAdapter, Update
 
 class CaptureAdapter(PitWallAdapter):
@@ -9,18 +10,19 @@ class CaptureAdapter(PitWallAdapter):
 
     async def run(self) -> None:
         if self.filename == "-":
-            in_file = sys.stdin
+            in_file = wrap_file(sys.stdin)
         else:
-            in_file = open(self.filename, "r")
+            in_file = await open_file(self.filename, "r")
 
-        for line in in_file:
-            try:
-                self._message(self.parse_line(line))
-            except EOS:
-                break
-            except:
-                print(line) # TODO: remove this
-                raise
+        async with in_file:
+            async for line in in_file:
+                try:
+                    await self._message(self.parse_line(line))
+                except EOS:
+                    break
+                except:
+                    print(line) # TODO: remove this
+                    raise
 
     def parse_line(self, line: str) -> Update:
         line = line.rstrip()
