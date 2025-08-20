@@ -12,6 +12,11 @@ jobs:
           prune-cache: false
       - run: uv sync --locked --all-extras --dev
         id: uv
+      - run: uv build
+      - uses: actions/upload-artifact@v3
+        with:
+          name: pitwall
+          path: dist/*.whl
       - run: uvx ruff check --extend-select PT
         if: ${{ always() && steps.uv.conclusion == 'success' }}
       - run: uvx ty check

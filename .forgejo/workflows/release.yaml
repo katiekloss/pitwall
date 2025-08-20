@@ -21,7 +21,8 @@ jobs:
         with:
           enable-cache: true
           prune-cache: false
-      - run: uv version ${{ steps.tag-version.outputs.value }}
+      - name: uv version
+        run: uv version ${{ steps.tag-version.outputs.value }}
       - run: uv build
       - run: uv publish
       - uses: actions/upload-artifact@v3
