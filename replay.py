@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 import copy
-import queue
 import sys
+from typing import List, Tuple
 from anyio import run
 import asyncio
 import os
@@ -13,6 +13,70 @@ import logging
 import orjson
 from pitwall.adapters.abstract import EOS, PitWallAdapter, Update
 from pitwall.adapters.captureadapter import CaptureAdapter
+
+class BufferingAdapter(PitWallAdapter):
+    _adapter: PitWallAdapter
+    _write_lock: asyncio.Lock
+    _history: List[Update]
+    _queues: List[asyncio.Queue]
+
+    def __init__(self, adapter: PitWallAdapter):
+        super().__init__()
+        self._adapter = adapter
+        adapter.on_message(self._on_message)
+        self._write_lock = asyncio.Lock()
+        self._history = list()
+        self._queues = list()
+        self._log = logging.getLogger(__name__)
+
+    async def run(self):
+        await self._adapter.run()
+
+    async def _on_message(self, update: Update):
+        async with self._write_lock:
+            self._history.append(update)
+            for q in self._queues:
+                q.put_nowait(update)
+
+        self._last_message = update
+        await self._message(update)
+    
+    async def resume_from(self, sequence: int | None = None) -> Tuple[List[Update], PitWallAdapter]:
+        """
+            Begins a new queue consuming the wrapped adapter's updates from a specific point in its lifetime.
+            
+            Returns a tuple containing:
+            - a list of updates prior to the given sequence to replay
+            - a queue containing all updates after the given sequence, which will also receive future updates
+        """
+
+        # Acquiring the lock ensures any updates received while creating/filling the new queue
+        # will be deferred and queued normally instead of dropped. Unless iterating a Python list
+        # guarantees the same thing?
+        async with self._write_lock:
+            new_queue = asyncio.Queue()
+            self._queues.append(new_queue)
+
+            if sequence is None:
+                to_replay = []
+            else:
+                to_replay = self._history[0:sequence]
+                for msg in self._history[sequence:]:
+                    new_queue.put_nowait(msg)
+
+            return (to_replay, QueueAdapter(new_queue))
+        
+class QueueAdapter(PitWallAdapter):
+    _queue: asyncio.Queue
+
+    def __init__(self, queue: asyncio.Queue):
+        super().__init__()
+        self._queue = queue
+    
+    async def run(self):
+        while True:
+            update = await self._queue.get()
+            await self._message(update)
 
 class RealtimeReplayAdapter(PitWallAdapter):
     _inner_adapter: PitWallAdapter
@@ -39,6 +103,7 @@ class RealtimeReplayAdapter(PitWallAdapter):
         last_ts = None
 
         while True:
+            self._log.debug("Fetching next update")
             next_update: Update = await self._queue.get()
 
             if last_ts is None: # or if we spent any amount of time waiting on the queue (i.e. it's already realtime)
@@ -49,8 +114,9 @@ class RealtimeReplayAdapter(PitWallAdapter):
                 if wait_s > 5:
                     wait_s = 5
                 wait_s = wait_s / self._multiplier
-                self._log.debug("Need to wait %.3fs for next update", wait_s)
-                await asyncio.sleep(wait_s)
+                if wait_s > 0:
+                    self._log.debug("Need to wait %.3fs for next update", wait_s)
+                    await asyncio.sleep(wait_s)
 
             # measure the amount of time spent processing the message callbacks
             # and add it to the current update's timestamp, so that the next

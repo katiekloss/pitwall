@@ -15,7 +15,6 @@ from pysignalr.client import SignalRClient
 from pitwall import PitWallClient
 from pitwall.adapters import CaptureAdapter
 from pitwall.adapters.websocketadapter import WebsocketAdapter
-from pitwall.adapters.rabbitadapter import RabbitAdapter
 from pitwall.events import SessionChange, Driver, SessionProgress, RaceControlMessage, TimingDatum, DriverStatusUpdate, \
                            SectorTimingDatum, SegmentTimingDatum, StintChange, QualifyingSessionProgress, \
                            LapTimingDatum, SessionStatus, SessionConfig
@@ -62,8 +61,6 @@ def main():
     # TODO: guess what
     if str.startswith(args.input, "ws://") or str.startswith(args.input, "wss://"):
         adapter = WebsocketAdapter(SignalRClient(args.input))
-    elif str.startswith(args.input, "amqp://") or str.startswith(args.input, "amqps://"):
-        adapter = RabbitAdapter(args.input)
     else:
         if args.input != "-":
             for i in range(20):
@@ -78,17 +75,7 @@ def main():
         adapter = CaptureAdapter(args.input)
     
     client = PitWallClient(adapter)
-    client.on_session_change(on_session_change)
-    client.on_session_progress(on_session_progress)
-    client.on_driver_data(init_drivers)
-    client.on_race_control_update(on_race_control_update)
-    client.on_timing_datum(on_timing_data)
-    client.on_driver_status_update(on_driver_status_update)
-    client.on_session_status(on_session_status)
-    client.on_stint_change(on_stint_change)
-    client.on_track_status(lambda s: print(f"{Color.GREEN}Track is {s.message} ({s.id}){Color.OFF}"))
-    client.on_clock(lambda c: print(f"{Color.GREEN}Race time is {c.remaining}{Color.OFF}"))
-    client.on_session_config(on_session_config)
+    configure_client(client)
 
     timing_tower = TimingTower(client)
 
@@ -101,6 +88,19 @@ def main():
     print(f"Driver statuses: {driver_statuses_quick}")
     for driver in sorted(timing_tower.drivers.values(), key=lambda d: d.position):
         print(f"{driver.position}: {drivers[driver.driver_number]}")
+
+def configure_client(client: PitWallClient):
+    client.on_session_change(on_session_change)
+    client.on_session_progress(on_session_progress)
+    client.on_driver_data(init_drivers)
+    client.on_race_control_update(on_race_control_update)
+    client.on_timing_datum(on_timing_data)
+    client.on_driver_status_update(on_driver_status_update)
+    client.on_session_status(on_session_status)
+    client.on_stint_change(on_stint_change)
+    client.on_track_status(lambda s: print(f"{Color.GREEN}Track is {s.message} ({s.id}){Color.OFF}"))
+    client.on_clock(lambda c: print(f"{Color.GREEN}Race time is {c.remaining}{Color.OFF}"))
+    client.on_session_config(on_session_config)
 
 def on_session_status(status: SessionStatus):
     print(f"{Color.GREEN}Session is {status.status}{Color.OFF}")

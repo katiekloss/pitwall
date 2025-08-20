@@ -1,38 +1,43 @@
+import asyncio
 import copy
+import logging
 from typing import Dict
-from asyncio import run
+from asyncio import run, gather
 
 from pitwall.client import PitWallClient
 from pitwall.events.timing import IntervalTimingDatum, TimingDatum
-from pitwall.adapters.abstract import PitWallAdapter
+from pitwall.adapters.abstract import PitWallAdapter, Update
 from pitwall.adapters.captureadapter import CaptureAdapter
-from replay import RealtimeReplayAdapter
+from replay import BufferingAdapter, RealtimeReplayAdapter
 
-class SyncAdapter(PitWallAdapter):
-    _inner_adapter: PitWallAdapter
+logging.basicConfig(
+    format="%(asctime)s %(name)s: %(message)s",
+    level=logging.DEBUG,
+)
+
+class SyncClient:
+    _adapter: BufferingAdapter
     _client: PitWallClient
     _sequence: int
     _snapshots: Dict[int, Dict[int, float]]
     _last_snapshot: Dict[int, float]
 
-    def __init__(self, adapter: PitWallAdapter):
+    def __init__(self, adapter: BufferingAdapter):
         super().__init__()
-        self._inner_adapter = adapter
-        self._inner_adapter.on_message(self._inner_message)
+        self._adapter = adapter
+        self._adapter.on_message(self._inner_message)
 
         # Make sure that the client's callbacks are registered AFTER our own, so that we can infer
         # which client-level updates were fired by the adapter's most recently-sequenced update
-        self._client = PitWallClient(self._inner_adapter)
+        self._client = PitWallClient(self._adapter)
         self._client.on_timing_datum(self._on_timing_datum)
-
-        self._inner_adapter.on_message(self._message)
 
         self._sequence = 0
         self._snapshots = dict()
         self._last_snapshot = None
 
-    def _inner_message(self, _):
-        self._sequence += 1
+    def _inner_message(self, u: Update):
+        self._sequence = u.seq
 
     def _on_timing_datum(self, point: TimingDatum):
         if not isinstance(point, IntervalTimingDatum):
@@ -50,33 +55,42 @@ class SyncAdapter(PitWallAdapter):
         self._last_snapshot = new
 
     async def run(self):
-        await self._inner_adapter.run()
+        await self._client.go()
 
-def check_snapshots(_):
-    print(f"At sequence {sync._sequence}")
-    snapshot = sync._last_snapshot
-    if snapshot is None:
-        return
+    def find(self, intervals: Dict[int, float]) -> int:
+        print(f"Examining {len(self._snapshots)} snapshots")
+        for sequence, snapshot in self._snapshots.items():
+            mismatches = [driver_id not in snapshot or snapshot[driver_id] != intervals[driver_id] for driver_id in intervals]
+            if not any(mismatches):
+                return sequence
+
+async def sync_to():
+    while len(sync._adapter._history) < 66130:
+        await asyncio.sleep(1)
+
+    seq = sync.find({81: 0.687,
+             63: 21.395,
+             1: 1.228,
+             31: 2.005,
+             44: 0.550,
+             43: 0.504})
+    print(f"Found match at sequence {seq}")
+    (to_replay, new_adapter) = await sync._adapter.resume_from(seq)
+    print(f"{len(to_replay)} updates to replay, {new_adapter._queue.qsize()} waiting")
+    new_client = PitWallClient(RealtimeReplayAdapter(new_adapter))
+    for msg in to_replay:
+        await new_client._update(msg)
+    delay = (sync._adapter._last_message.ts - to_replay[-1].ts) / 1000000000
+    print(f"We are {delay:.03f}s behind")
+    await new_client.go()
     
-    if 81 in snapshot and snapshot[81] == 0.687 \
-            and 63 in snapshot and snapshot[63] == 21.395 \
-            and 1 in snapshot and snapshot[1] == 1.228 \
-            and 31 in snapshot and snapshot[31] == 2.005 \
-            and 44 in snapshot and snapshot[44] == 0.550 \
-            and 43 in snapshot and snapshot[43] == 0.504:
-        raise Exception(f"Found matching timing samples at sequence {sync._sequence}")
-
 async def main():
     global sync
 
-    replay = RealtimeReplayAdapter(CaptureAdapter("data/2025_hungary_race.txt"), multiplier=20)
-    sync = SyncAdapter(replay)
-    sync.on_message(check_snapshots)
+    buffer = BufferingAdapter(CaptureAdapter("data/2025_hungary_race.txt"))
+    sync = SyncClient(buffer)
 
-    try:
-        await sync.run()
-    finally:
-        return sync
+    await gather(sync.run(), sync_to())
     
 if __name__ == "__main__":
     run(main())

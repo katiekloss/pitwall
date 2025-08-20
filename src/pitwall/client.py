@@ -1,3 +1,4 @@
+import logging
 from typing import Any, Dict, List
 from collections.abc import Callable
 
@@ -23,10 +24,13 @@ class PitWallClient:
     clock_callbacks: List[Callable[[Clock], None]]
     session_config_callbacks: List[Callable[[SessionConfig], None]]
 
-    def __init__(self, adapter : PitWallAdapter):
-        self.adapter = adapter
-        self.adapter.on_message(self._update)
 
+    def __init__(self, adapter : PitWallAdapter = None):
+        if adapter is not None:
+            self.adapter = adapter
+            self.adapter.on_message(self._update)
+
+        self._logger = logging.getLogger(__name__)
         self.update_callbacks = list()
         self.session_change_callbacks = list()
         self.driver_data_callbacks = list()
@@ -42,6 +46,7 @@ class PitWallClient:
         self.session_config_callbacks = list()
 
     async def go(self) -> None:
+        self._logger.info("Starting")
         await self.adapter.run()
 
     def on_session_change(self, session_change_callback: Callable[[SessionChange], None]):

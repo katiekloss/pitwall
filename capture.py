@@ -1,11 +1,17 @@
 #!/usr/bin/env python
 import asyncio
+import logging
 import orjson
 import time
 import argparse
 import os
 
 from pysignalr.client import SignalRClient
+
+logging.basicConfig(
+    format="%(asctime)s %(name)s: %(message)s",
+    level=logging.DEBUG,
+)
 
 last_update = time.time()
 out_file = None
@@ -92,7 +98,8 @@ def write(line):
 
 async def main():
     timing_client = SignalRClient("wss://livetiming.formula1.com/signalrcore", connection_timeout=30)
-
+    timing_client._transport._skip_negotiation = True
+    
     timing_client.on_open(on_open)
     timing_client.on_close(on_close)
     timing_client.on_error(on_error)

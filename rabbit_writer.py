@@ -6,7 +6,7 @@ import orjson
 import os
 import sys
 
-from replay import RealtimeReplayAdapter
+from replay import BufferedReplayAdapter
 # from pitwall.adapters import WebsocketAdapter
 # from pysignalr.client import SignalRClient
 from pika.adapters.blocking_connection import BlockingChannel
@@ -28,7 +28,7 @@ async def main():
     channel.exchange_declare("pitwall", exchange_type=ExchangeType.topic)
 
     #adapter = WebsocketAdapter(SignalRClient("wss://livetiming.formula1.com/signalrcore"))
-    adapter = RealtimeReplayAdapter(sys.argv[1])
+    adapter = BufferedReplayAdapter(sys.argv[1])
     adapter.on_message(lambda u: channel.basic_publish(exchange='pitwall',
                                                        routing_key=u.src,
                                                        body=orjson.dumps(u.data),
