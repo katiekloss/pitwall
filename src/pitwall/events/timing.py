@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-type TimingDatum = SegmentTimingDatum | SectorTimingDatum | LapTimingDatum
+type TimingDatum = SegmentTimingDatum | SectorTimingDatum | LapTimingDatum | IntervalTimingDatum | LeaderTimingDatum
 
 @dataclass
 class SegmentTimingDatum:
