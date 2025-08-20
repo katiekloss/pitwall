@@ -1,0 +1,21 @@
+on: [push]
+env:
+  UV_NO_PROGRESS: 1
+  UV_PUBLISH_USERNAME: katie
+  UV_PUBLISH_PASSWORD: ${{ secrets.UV_PUBLISH_PASSWORD }}
+  UV_PUBLISH_URL: https://code.kat5.dev/api/packages/katie/pypi
+jobs:
+  release:
+    runs-on: docker
+    steps:
+      - uses: actions/checkout@v4
+      - uses: https://github.com/astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          prune-cache: false
+      - run: uv build
+      - run: uv publish
+      - uses: actions/upload-artifact@v3
+        with:
+          name: pitwall
+          path: dist/*.whl
