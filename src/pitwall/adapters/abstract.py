@@ -30,9 +30,11 @@ class PitWallAdapter(ABC):
     async def run(self) -> None:
         ...
     
+    # bug: if callback doesn't match the expected signature, stuff silently blows up
     def on_message(self, callback: Callable[[Update], None]) -> None:
         self.message_callbacks.append(callback)
 
     def _message(self, update: Update) -> None:
         for callback in self.message_callbacks:
+            # if this raises, it'll get eaten?
             callback(update)
