@@ -20,7 +20,7 @@ class SessionState:
     q: int
 
 ha: HomeAssistantClient = None # ty: ignore[invalid-assignment]
-session: SessionState = SessionState(None, 0, 0)
+session = SessionState("", 0, 0)
 drivers: Dict[int, Driver] = dict()
 
 async def main():
