@@ -134,11 +134,11 @@ class PitWallClient:
                 if "BroadcastName" not in driver:
                     continue
 
-                drivers.append(Driver(int(driver_id), driver["BroadcastName"], driver.get("TeamName", None), \
+                drivers.append(Driver(int(driver_id), driver["BroadcastName"], driver["Tla"], driver.get("TeamName", None), \
                                       driver.get("TeamColour", None), driver.get("FirstName", None), driver.get("LastName", None)))
         else:
             for driver in driver_data:
-                drivers.append(Driver(driver["RacingNumber"], driver["BroadcastName"], driver.get("TeamName", None),
+                drivers.append(Driver(driver["RacingNumber"], driver["BroadcastName"], driver["Tla"], driver.get("TeamName", None),
                                       driver.get("TeamColour", None), driver.get("FirstName", None), driver.get("LastName", None)))
         
         return drivers
