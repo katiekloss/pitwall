@@ -72,7 +72,7 @@ class SyncClient:
         best_sequence = None
 
         for sequence, snapshot in self._snapshots.items():
-            matches = [driver_id in snapshot and snapshot[driver_id] == intervals[driver_id] for driver_id in intervals.keys()]
+            matches = [True for driver_id in intervals.keys() if driver_id in snapshot and snapshot[driver_id] == intervals[driver_id]]
             if len(matches) > most_matches:
                 most_matches = len(matches)
                 best_sequence = sequence
