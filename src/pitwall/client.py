@@ -23,6 +23,7 @@ class PitWallClient:
     track_status_callbacks: List[Callable[[TrackStatus], None]]
     clock_callbacks: List[Callable[[Clock], None]]
     session_config_callbacks: List[Callable[[SessionConfig], None]]
+    silent: bool
 
 
     def __init__(self, adapter : PitWallAdapter = None):
@@ -44,10 +45,19 @@ class PitWallClient:
         self.track_status_callbacks = list()
         self.clock_callbacks = list()
         self.session_config_callbacks = list()
+        self.silent = False
 
     async def go(self) -> None:
         self._logger.info("Starting")
         await self.adapter.run()
+
+    async def load(self, updates: List[Update]) -> None:
+        self.silent = True
+        try:
+            for update in updates:
+                await self._update(update)
+        finally:
+            self.silent = False
 
     def on_session_change(self, session_change_callback: Callable[[SessionChange], None]):
         self.session_change_callbacks.append(session_change_callback)
@@ -75,7 +85,7 @@ class PitWallClient:
 
     def on_stint_change(self, callback: Callable[[StintChange], None]) -> None:
         self.stint_change_callbacks.append(callback)
-    
+
     def on_track_status(self, callback: Callable[[TrackStatus], None]) -> None:
         self.track_status_callbacks.append(callback)
 
@@ -117,6 +127,9 @@ class PitWallClient:
         # elif update.src in ["Heartbeat", "WeatherData", "TeamRadio"]:
 
     def _fire_callbacks(self, callbacks: List[Callable[[Any], None]], payload: Any) -> None:
+        if self.silent:
+            return
+
         for callback in callbacks:
             callback(payload)
 

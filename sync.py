@@ -1,6 +1,10 @@
 import asyncio
 import copy
 import logging
+import re
+import easyocr
+import time
+
 from typing import Dict
 from asyncio import run, gather
 
@@ -80,7 +84,22 @@ class SyncClient:
             if most_matches == len(intervals):
                 break
 
+        if best_sequence is None:
+            raise Exception("No match found")
+
         return (best_sequence, most_matches)
+
+def text_to_sample(result: str):
+    sample = {}
+
+    # find things that look like this: PIA +2.806
+    # try to account for whitespace (either actually recognized or added between the results)
+    for group in re.findall(r"([A-Z ]{3,})\+\s*([0-9]{1,2}[.,][0-9]*)", result):
+        driver = group[0].strip(' ')
+        time = float(re.sub(',', '.', group[1].strip(' ')))
+        sample[driver] = time
+
+    return sample
 
 async def sync_to():
     # Maybe replace with a .running property
@@ -89,10 +108,10 @@ async def sync_to():
         await asyncio.sleep(1)
 
     print(f"Read to {sync._sequence}")
+
+    # Look up all of the drivers' IDs for the search, discard any we can't find (usually not recognized)
     constrained_sample = dict([(driver_ids[initials], sample[initials]) for initials in sample.keys() if initials in driver_ids])
     (seq, matches) = sync.find(constrained_sample)
-    if seq is None:
-        raise Exception("No match found")
 
     print(f"Found match at sequence {seq} with {matches} of {len(constrained_sample)} matching points")
 
@@ -101,8 +120,7 @@ async def sync_to():
     (to_replay, new_adapter) = await sync._adapter.resume_from(seq)
     print(f"{len(to_replay)} updates to replay, {new_adapter._queue.qsize()} waiting")
     new_client = PitWallClient(RealtimeReplayAdapter(new_adapter))
-    for msg in to_replay:
-        await new_client._update(msg)
+    await new_client.load(to_replay)
 
     delay = (sync._adapter._last_message.ts - to_replay[-1].ts) / 1000000000
     print(f"We are {delay:.03f}s behind")
@@ -112,20 +130,14 @@ async def main():
     global sync
     global sample
 
-    import re
-    import easyocr
+    now = time.time_ns()
     reader = easyocr.Reader(['en'])
     results = reader.readtext('test/PXL_20251006_224819827.MP_preview.jpeg')
+    print(f"OCR took {(time.time_ns() - now) / 1000000000}s")
+
     result = " ".join([x[1] for x in results])
     print(result)
-    sample = {}
-
-    # find things that look like this: PIA +2.806
-    # try to account for whitespace (either actually recognized or added between the results)
-    for group in re.findall(r"([A-Z ]{3,})\+\s*([0-9]{1,2}[.,][0-9]*)", result):
-        driver = group[0].strip(' ')
-        time = float(re.sub(',', '.', group[1].strip(' ')))
-        sample[driver] = time
+    sample = text_to_sample(result)
 
     buffer = BufferingAdapter(CaptureAdapter("data/2025_hungary_race.txt"))
     sync = SyncClient(buffer)
