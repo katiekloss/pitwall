@@ -9,5 +9,5 @@ jobs:
           enable-cache: true
           prune-cache: false
       - name: Run watch.py
-        run: find data/ -type f | xargs -I % uv run --frozen --no-progress watch.py -i %
+        run: find data/ -type f | xargs -I % uv run --frozen --no-progress watch.py -i % > /dev/null 2>&1
         
