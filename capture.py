@@ -10,7 +10,7 @@ from pysignalr.client import SignalRClient
 
 logging.basicConfig(
     format="%(asctime)s %(name)s: %(message)s",
-    level=logging.DEBUG,
+    level=logging.INFO,
 )
 
 last_update = time.time()
