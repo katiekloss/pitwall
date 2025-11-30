@@ -17,7 +17,7 @@ jobs:
         with:
           name: pitwall
           path: dist/*.whl
-      - run: uvx ruff check --extend-select PT --exclude sync.py
+      - run: uvx ruff check --extend-select PT --exclude sync.py --exclude .venv
         if: ${{ always() && steps.uv.conclusion == 'success' }}
       - run: uvx ty check --exclude sync.py
         if: ${{ always() && steps.uv.conclusion == 'success' }}
